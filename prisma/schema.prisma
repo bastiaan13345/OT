@@ -1,0 +1,121 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Track {
+  id            String          @id @default(cuid())
+  title         String
+  artist        String
+  genre         String?
+  description   String?
+  audioUrl      String
+  coverUrl      String?
+  album         String?
+  tags          String?
+  license       String?
+  price         Float?
+  releaseDate   DateTime?
+  allowDownload Boolean         @default(false)
+  duration      Int? // in seconds
+  plays         Int             @default(0)
+  downloads     Int             @default(0)
+  featured      Boolean         @default(false)
+  published     Boolean         @default(true)
+  creatorId     String?
+  creator       User?           @relation(fields: [creatorId], references: [id])
+  likes         Like[]
+  comments      Comment[]
+  playlistItems PlaylistTrack[]
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+}
+
+model Admin {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+}
+
+model User {
+  id        String     @id @default(cuid())
+  name      String
+  email     String     @unique
+  password  String
+  role      String     @default("CREATOR")
+  bio       String?
+  location  String?
+  website   String?
+  avatarUrl String?
+  tracks    Track[]
+  likes     Like[]
+  comments  Comment[]
+  playlists Playlist[]
+  following Follow[]   @relation("following")
+  followers Follow[]   @relation("followers")
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model Like {
+  id        String   @id @default(cuid())
+  userId    String
+  trackId   String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  track     Track    @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, trackId])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  body      String
+  userId    String
+  trackId   String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  track     Track    @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+model Follow {
+  id          String   @id @default(cuid())
+  followerId  String
+  followingId String
+  follower    User     @relation("following", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User     @relation("followers", fields: [followingId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@unique([followerId, followingId])
+}
+
+model Playlist {
+  id          String          @id @default(cuid())
+  name        String
+  description String?
+  public      Boolean         @default(true)
+  userId      String
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tracks      PlaylistTrack[]
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+}
+
+model PlaylistTrack {
+  id         String   @id @default(cuid())
+  playlistId String
+  trackId    String
+  playlist   Playlist @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+  track      Track    @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([playlistId, trackId])
+}
