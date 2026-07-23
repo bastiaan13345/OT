@@ -85,4 +85,18 @@ describe("presetPatchFromFormData", () => {
 
     expect(() => presetPatchFromFormData(formData)).toThrow("Price must be a non-negative number.");
   });
+
+  it("rejects values beyond the documented field bounds", () => {
+    const formData = new FormData();
+    formData.set("artist", "a".repeat(201));
+
+    expect(() => presetPatchFromFormData(formData)).toThrow("Artist must be 200 characters or fewer.");
+  });
+
+  it("rejects uploaded files for preset fields", () => {
+    const formData = new FormData();
+    formData.set("description", new File(["not metadata"], "notes.txt", { type: "text/plain" }));
+
+    expect(() => presetPatchFromFormData(formData)).toThrow("Preset fields must be text values.");
+  });
 });

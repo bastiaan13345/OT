@@ -15,8 +15,8 @@ export type PresetStorageData = {
   published: boolean | null;
 };
 
-function localNoonFromIsoDate(value: string) {
-  return new Date(Number(value.slice(0, 4)), Number(value.slice(5, 7)) - 1, Number(value.slice(8, 10)), 12);
+function utcNoonFromIsoDate(value: string) {
+  return new Date(`${value}T12:00:00.000Z`);
 }
 
 function priceFromPatch(value: string | undefined) {
@@ -42,7 +42,7 @@ function dateFromPatch(value: string | undefined) {
     throw new Error("Release date must be a valid ISO date.");
   }
 
-  return localNoonFromIsoDate(value);
+  return utcNoonFromIsoDate(value);
 }
 
 /**

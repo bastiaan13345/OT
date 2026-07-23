@@ -70,9 +70,7 @@ function mapNullableValues(row: Omit<PresetRow, "id" | "name" | "project"> & { a
 }
 
 function toLocalIsoDate(date: Date) {
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
-    date.getDate(),
-  ).padStart(2, "0")}`;
+  return date.toISOString().slice(0, 10);
 }
 
 /** Maps a database upload preset into serializable upload-only UI values. */

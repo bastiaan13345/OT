@@ -31,6 +31,26 @@ describe("mapPreset", () => {
       allowDownload: false,
     });
   });
+
+  it("serializes preset dates by their UTC calendar date", () => {
+    const preset = mapPreset({
+      id: "preset-utc",
+      name: "UTC date",
+      title: null,
+      artist: null,
+      genre: null,
+      project: null,
+      tags: null,
+      license: null,
+      description: null,
+      price: null,
+      releaseDate: new Date("2026-07-23T23:00:00.000Z"),
+      allowDownload: null,
+      published: null,
+    });
+
+    expect(preset.releaseDate).toBe("2026-07-23");
+  });
 });
 
 describe("mapPreviousTrack", () => {

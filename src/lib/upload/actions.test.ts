@@ -4,9 +4,8 @@ const mocks = vi.hoisted(() => ({
   requireUploadCreator: vi.fn(),
   updateUser: vi.fn(),
   createPreset: vi.fn(),
-  findPreset: vi.fn(),
-  updatePreset: vi.fn(),
-  deletePreset: vi.fn(),
+  updateMany: vi.fn(),
+  deleteMany: vi.fn(),
   revalidatePath: vi.fn(),
 }));
 
@@ -16,9 +15,8 @@ vi.mock("@/lib/prisma", () => ({
     user: { update: mocks.updateUser },
     uploadPreset: {
       create: mocks.createPreset,
-      findFirst: mocks.findPreset,
-      update: mocks.updatePreset,
-      delete: mocks.deletePreset,
+      updateMany: mocks.updateMany,
+      deleteMany: mocks.deleteMany,
     },
   },
 }));
@@ -36,13 +34,12 @@ describe("creator upload preference actions", () => {
     mocks.requireUploadCreator.mockResolvedValue({ id: "creator-1" });
     mocks.updateUser.mockResolvedValue({ uploadConcurrency: 3 });
     mocks.createPreset.mockResolvedValue({ id: "preset-1" });
-    mocks.findPreset.mockResolvedValue({ id: "preset-1" });
-    mocks.updatePreset.mockResolvedValue({ id: "preset-1" });
-    mocks.deletePreset.mockResolvedValue({ id: "preset-1" });
+    mocks.updateMany.mockResolvedValue({ count: 1 });
+    mocks.deleteMany.mockResolvedValue({ count: 1 });
   });
 
   it("updates only the current creator's validated upload concurrency", async () => {
-    await expect(updateUploadConcurrency(3)).resolves.toEqual({ concurrency: 3 });
+    await expect(updateUploadConcurrency(3)).resolves.toEqual({ ok: true, data: { concurrency: 3 } });
 
     expect(mocks.updateUser).toHaveBeenCalledWith({
       where: { id: "creator-1" },
@@ -58,7 +55,7 @@ describe("creator upload preference actions", () => {
     formData.set("name", "  Night Set ");
     formData.set("artist", " Nova Vale ");
 
-    await expect(createUploadPreset(formData)).resolves.toEqual({ presetId: "preset-1" });
+    await expect(createUploadPreset(formData)).resolves.toEqual({ ok: true, data: { presetId: "preset-1" } });
 
     expect(mocks.createPreset).toHaveBeenCalledWith({
       data: expect.objectContaining({
@@ -71,28 +68,72 @@ describe("creator upload preference actions", () => {
     });
   });
 
-  it("does not update a preset outside the persisted creator scope", async () => {
-    mocks.findPreset.mockResolvedValue(null);
+  it("updates atomically within the persisted creator scope", async () => {
+    const formData = new FormData();
+    formData.set("name", "Night set");
 
-    await expect(updateUploadPreset("other-preset", new FormData())).rejects.toThrow("Preset not found.");
-
-    expect(mocks.findPreset).toHaveBeenCalledWith({
-      where: { id: "other-preset", userId: "creator-1" },
-      select: { id: true },
+    await expect(updateUploadPreset("preset-1", formData)).resolves.toEqual({
+      ok: true,
+      data: { presetId: "preset-1" },
     });
-    expect(mocks.updatePreset).not.toHaveBeenCalled();
+
+    expect(mocks.updateMany).toHaveBeenCalledWith({
+      where: { id: "preset-1", userId: "creator-1" },
+      data: expect.objectContaining({ name: "Night set", normalizedName: "night set" }),
+    });
   });
 
-  it("deletes only a preset found in the persisted creator scope", async () => {
-    await expect(deleteUploadPreset("preset-1")).resolves.toEqual({ presetId: "preset-1" });
+  it("returns not found when the atomic update affects no owned preset", async () => {
+    mocks.updateMany.mockResolvedValue({ count: 0 });
+    const formData = new FormData();
+    formData.set("name", "Night set");
 
-    expect(mocks.findPreset).toHaveBeenCalledWith({
-      where: { id: "preset-1", userId: "creator-1" },
-      select: { id: true },
+    await expect(updateUploadPreset("other-preset", formData)).resolves.toEqual({
+      ok: false,
+      error: "Preset not found.",
     });
-    expect(mocks.deletePreset).toHaveBeenCalledWith({
-      where: { id: "preset-1" },
-      select: { id: true },
+  });
+
+  it("deletes atomically within the persisted creator scope", async () => {
+    await expect(deleteUploadPreset("preset-1")).resolves.toEqual({
+      ok: true,
+      data: { presetId: "preset-1" },
+    });
+
+    expect(mocks.deleteMany).toHaveBeenCalledWith({
+      where: { id: "preset-1", userId: "creator-1" },
+    });
+  });
+
+  it("returns serializable expected errors for validation, duplicates, and failed deletion", async () => {
+    mocks.createPreset.mockRejectedValueOnce({ code: "P2002" });
+    mocks.deleteMany.mockResolvedValueOnce({ count: 0 });
+
+    const duplicate = new FormData();
+    duplicate.set("name", "Night set");
+
+    await expect(createUploadPreset(duplicate)).resolves.toEqual({
+      ok: false,
+      error: "A preset with this name already exists.",
+    });
+    await expect(updateUploadConcurrency(5)).resolves.toEqual({
+      ok: false,
+      error: "Upload concurrency must be an integer between 1 and 4.",
+    });
+    await expect(deleteUploadPreset("preset-1")).resolves.toEqual({
+      ok: false,
+      error: "Preset not found.",
+    });
+  });
+
+  it("returns the duplicate-name error when an atomic edit conflicts", async () => {
+    mocks.updateMany.mockRejectedValueOnce({ code: "P2002" });
+    const formData = new FormData();
+    formData.set("name", "Night set");
+
+    await expect(updateUploadPreset("preset-1", formData)).resolves.toEqual({
+      ok: false,
+      error: "A preset with this name already exists.",
     });
   });
 });

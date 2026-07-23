@@ -32,13 +32,23 @@ export function presetPatchFromFormData(formData: FormData): UploadValuePatch {
   const patch: UploadValuePatch = {};
 
   for (const field of presetStringFields) {
-    const value = formData.get(field);
+    const values = formData.getAll(field);
 
-    if (typeof value !== "string") {
+    if (values.length === 0) {
       continue;
     }
 
+    if (values.length !== 1 || typeof values[0] !== "string") {
+      throw new Error("Preset fields must be text values.");
+    }
+
+    const value = values[0];
+
     const trimmed = value.trim();
+
+    if (trimmed.length > presetStringLimits[field]) {
+      throw new Error(`${fieldLabel(field)} must be ${presetStringLimits[field]} characters or fewer.`);
+    }
 
     if (field === "price" && trimmed) {
       const price = Number(trimmed);
@@ -52,11 +62,17 @@ export function presetPatchFromFormData(formData: FormData): UploadValuePatch {
   }
 
   for (const field of presetBooleanFields) {
-    const value = formData.get(field);
+    const values = formData.getAll(field);
 
-    if (typeof value !== "string") {
+    if (values.length === 0) {
       continue;
     }
+
+    if (values.length !== 1 || typeof values[0] !== "string") {
+      throw new Error("Preset fields must be text values.");
+    }
+
+    const value = values[0];
 
     if (value === "on" || value === "true") {
       Object.assign(patch, { [field]: true });
@@ -89,3 +105,23 @@ const presetStringFields = [
 const presetBooleanFields = ["allowDownload", "published"] as const satisfies ReadonlyArray<
   Extract<keyof UploadValues, "allowDownload" | "published">
 >;
+
+const presetStringLimits: Record<(typeof presetStringFields)[number], number> = {
+  title: 200,
+  artist: 200,
+  genre: 100,
+  album: 100,
+  tags: 500,
+  license: 100,
+  description: 5000,
+  price: 100,
+  releaseDate: 10,
+};
+
+function fieldLabel(field: string) {
+  return field === "releaseDate"
+    ? "Release date"
+    : field === "allowDownload"
+      ? "Allow downloads"
+      : field.charAt(0).toUpperCase() + field.slice(1);
+}

@@ -21,11 +21,11 @@ describe("presetStorageData", () => {
     });
   });
 
-  it("keeps explicit empty strings and maps dates at local noon", () => {
+  it("keeps explicit empty strings and maps dates at UTC noon", () => {
     const data = presetStorageData({ title: "", price: "12.50", releaseDate: "2026-07-23" });
 
     expect(data).toMatchObject({ title: "", price: 12.5 });
-    expect(data.releaseDate).toEqual(new Date(2026, 6, 23, 12));
+    expect(data.releaseDate).toEqual(new Date("2026-07-23T12:00:00.000Z"));
   });
 
   it("rejects invalid ISO dates", () => {

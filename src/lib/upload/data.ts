@@ -6,6 +6,8 @@ import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { mapPreset, mapPreviousTrack, uploadSuggestionsFromRows } from "./data-mappers";
+import { canManageUploadSettings, persistedCreatorId } from "./creator-resolution";
+import { ownedUploadTracksQuery } from "./query-contracts";
 import type { UploadPresetView, UploadStudioData } from "./types";
 
 export const CREATOR_SETTINGS_UNAVAILABLE =
@@ -25,21 +27,23 @@ export async function requireUploadCreator(): Promise<User | null> {
     redirect("/admin/login");
   }
 
-  if (session.user.role !== "CREATOR" && session.user.role !== "ADMIN") {
+  const id = persistedCreatorId(session.user);
+
+  if (!id) {
+    return null;
+  }
+
+  const user = await prisma.user.findUnique({ where: { id } });
+
+  if (!user) {
+    return null;
+  }
+
+  if (!canManageUploadSettings(user.role)) {
     redirect("/library");
   }
 
-  const byId = session.user.id
-    ? await prisma.user.findUnique({ where: { id: session.user.id } })
-    : null;
-
-  if (byId) {
-    return byId;
-  }
-
-  const email = session.user.email?.trim().toLowerCase();
-
-  return email ? prisma.user.findUnique({ where: { email } }) : null;
+  return user;
 }
 
 /** Upload-page presets, prior owned tracks, and metadata suggestions. */
@@ -59,24 +63,7 @@ export async function getUploadStudioData(): Promise<UploadStudioData> {
       where: { userId: creator.id },
       orderBy: { updatedAt: "desc" },
     }),
-    prisma.track.findMany({
-      where: { creatorId: creator.id },
-      orderBy: { createdAt: "desc" },
-      select: {
-        id: true,
-        title: true,
-        artist: true,
-        genre: true,
-        album: true,
-        tags: true,
-        license: true,
-        description: true,
-        price: true,
-        releaseDate: true,
-        allowDownload: true,
-        published: true,
-      },
-    }),
+    prisma.track.findMany(ownedUploadTracksQuery(creator.id)),
   ]);
 
   return {
