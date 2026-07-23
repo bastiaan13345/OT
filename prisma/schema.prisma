@@ -12,6 +12,7 @@ datasource db {
 
 model Track {
   id            String          @id @default(cuid())
+  creationKey String? @unique
   title         String
   artist        String
   genre         String?
@@ -55,12 +56,14 @@ model User {
   location  String?
   website   String?
   avatarUrl String?
+  uploadConcurrency Int @default(2)
   tracks    Track[]
   likes     Like[]
   comments  Comment[]
   playlists Playlist[]
   following Follow[]   @relation("following")
   followers Follow[]   @relation("followers")
+  uploadPresets UploadPreset[]
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
 }
@@ -118,4 +121,28 @@ model PlaylistTrack {
   createdAt  DateTime @default(now())
 
   @@unique([playlistId, trackId])
+}
+
+model UploadPreset {
+  id             String    @id @default(cuid())
+  name           String
+  normalizedName String
+  title          String?
+  artist         String?
+  genre          String?
+  project        String?
+  tags           String?
+  license        String?
+  description    String?
+  price          Float?
+  releaseDate    DateTime?
+  allowDownload  Boolean   @default(false)
+  published      Boolean   @default(true)
+  userId         String
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@unique([userId, normalizedName])
+  @@index([userId])
 }
