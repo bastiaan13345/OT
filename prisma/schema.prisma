@@ -136,8 +136,8 @@ model UploadPreset {
   description    String?
   price          Float?
   releaseDate    DateTime?
-  allowDownload  Boolean   @default(false)
-  published      Boolean   @default(true)
+  allowDownload  Boolean?
+  published      Boolean?
   userId         String
   user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt      DateTime  @default(now())
