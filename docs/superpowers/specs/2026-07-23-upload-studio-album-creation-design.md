@@ -4,7 +4,7 @@
 
 Replace the current single-track form at `/admin/upload` with one unified upload studio. A segmented control switches between a fast single-track flow and a first-class album-creation flow. Album mode accepts multiple audio files, uses one shared cover, allows drag-and-drop ordering and per-track renaming, and keeps every successfully uploaded track when another track fails.
 
-The redesign also makes prior creator submissions available as reusable metadata suggestions and replaces visually inconsistent native date and checkbox controls with dark, accessible OpenTunes components. Inputs, menus, calendar popovers, track cards, and advanced panels must use the app's existing dark surface or glass styling. White backgrounds are not permitted on these surfaces.
+The redesign also makes prior creator submissions available as reusable metadata suggestions and complete track presets, adds creator-managed named upload presets, supports configurable parallel uploads, and replaces visually inconsistent native date and checkbox controls with dark, accessible OpenTunes components. Inputs, menus, calendar popovers, track cards, and advanced panels must use the app's existing dark surface or glass styling. White backgrounds are not permitted on these surfaces.
 
 ## Goals
 
@@ -14,15 +14,15 @@ The redesign also makes prior creator submissions available as reusable metadata
 - Let creators rename, reorder, customize, upload, and retry tracks independently.
 - Preserve successful tracks if other album tracks fail.
 - Suggest reusable values from the creator's previous submissions.
+- Let creators apply a previous track as a complete preset or manage named upload presets in Settings.
+- Upload multiple tracks concurrently with a safe, user-configurable limit.
 - Make dates and boolean settings visually consistent with OpenTunes.
 - Add automated tests and an `npm test` command before implementation behavior is added.
 
 ## Non-goals
 
 - Resumable chunked audio transfer.
-- Parallel uploads or user-configurable concurrency.
 - Editing audio files, trimming, mastering, or waveform manipulation.
-- Copying track-specific fields such as a previous title or release date as a full preset.
 - Reworking the separate Releases management page beyond ensuring newly created albums appear there correctly.
 
 ## User Experience
@@ -52,7 +52,7 @@ Changing an album-level default updates tracks that still inherit that field and
 
 ### Ordering and naming
 
-Track rows show a drag handle, automatic track number, editable title, original filename, size, and status. Dragging a row updates visible track numbers and the final `ReleaseTrack.position` values. The same order is used for sequential uploading.
+Track rows show a drag handle, automatic track number, editable title, original filename, size, and status. Dragging a row updates visible track numbers and the final `ReleaseTrack.position` values. Parallel completion order never changes the creator's chosen release positions.
 
 Removing a waiting or failed row removes it locally. An already uploaded row remains saved and attached to the album; the interface must explain that removing it from the pending list does not delete it.
 
@@ -74,7 +74,20 @@ Reusable suggestions are derived only from tracks and releases visible within th
 
 Values are trimmed, deduplicated case-insensitively, and ranked by most recent use. Empty values are omitted. Each field initially shows a small recent set, with keyboard-accessible matching as the creator types. Selecting a suggestion fills the field but never locks it.
 
-Track titles, descriptions, prices, dates, download settings, and publication settings are not copied as full previous-track presets.
+### Full presets and upload settings
+
+The creator sidebar gains a dedicated `/admin/settings` destination; public artist details remain on the existing Profile page. Settings contains an **Upload preferences** section that stores the creator's default concurrency limit and lets the creator create, rename, edit, and delete named upload presets. A named preset may contain title, artist, genre, project, tags, license, description, price, release date, download permission, and draft/published state. Preset values are optional so one preset can be broad while another changes only a few fields.
+
+The upload studio's **Apply preset** control has two ownership-scoped groups:
+
+- **Saved presets** contains creator-managed named presets from Settings.
+- **Previous tracks** exposes prior owned tracks as automatic complete presets without duplicating those tracks into the preset table.
+
+Applying either kind of preset is a one-time copy into the current form or selected track row. If non-empty values would be replaced, the UI names the affected fields before applying. The creator can edit every copied value afterward. Applying a previous-track preset never copies the audio file, cover file, play counts, download counts, creator identifier, or release membership.
+
+The creator may also save the current resolved form values as a new named preset from the upload studio. That action creates a reusable settings record; it does not create or upload a track.
+
+The concurrency preference supports values from 1 through 4 and defaults to 2. It is editable in Settings and available as an advanced per-session override in album mode. The per-session override affects only the current album unless the creator explicitly chooses **Save as my default**.
 
 ### Date picker
 
@@ -106,10 +119,12 @@ The current all-client page should be split so data access stays server-side:
 - `TrackUploadList` owns row ordering and delegates each row to `TrackUploadRow`.
 - `TrackUploadRow` owns editable title, resolved metadata display, advanced overrides, status, error, and retry action.
 - `SuggestionField` provides accessible recent-value suggestions without coupling fields to database access.
+- `PresetPicker` groups named presets and previous tracks, previews fields that will change, and applies a one-time value snapshot.
 - `DatePicker` owns calendar state and emits an ISO date string.
 - `SwitchField` owns accessible boolean interaction and form serialization.
+- The creator Settings page owns persistent upload concurrency and named-preset management.
 
-Pure helpers handle filename parsing, metadata/default resolution, suggestion normalization, date-grid generation, row reordering, and upload-state transitions. These helpers form the first testable boundary and keep the visual components small.
+Pure helpers handle filename parsing, metadata/default resolution, preset application, suggestion normalization, date-grid generation, row reordering, bounded-concurrency scheduling, and upload-state transitions. These helpers form the first testable boundary and keep the visual components small.
 
 ## Server and Data Design
 
@@ -125,9 +140,15 @@ Album mode first sends the album metadata and shared cover to a creator-owned re
 
 The release is created before audio uploads begin. If release creation fails, no audio upload starts. If every track later fails, the empty release remains visible and editable in Releases.
 
+### Upload preferences and presets
+
+`User` gains an `uploadConcurrency` preference with a server-enforced range of 1 through 4 and a default of 2. A creator-owned `UploadPreset` model stores the preset name and optional upload fields. Preset names are unique per creator after trimming and case normalization.
+
+Previous-track presets are projected directly from ownership-scoped `Track` rows. They are not copied into `UploadPreset` unless the creator explicitly saves one as a named preset. Settings mutations and preset queries always enforce creator ownership; admin access does not cause one creator's presets to appear for another creator.
+
 ### Track uploads
 
-Tracks upload sequentially through the existing `/api/tracks` validation and storage pipeline. Album requests add a release identifier, position, and stable client upload key. On the server, release ownership is checked independently of page authentication.
+Tracks upload through the existing `/api/tracks` validation and storage pipeline using a bounded client-side worker pool. Album requests add a release identifier, position, and stable client upload key. On the server, release ownership is checked independently of page authentication.
 
 For each successful request, one database transaction creates or resolves:
 
@@ -151,7 +172,9 @@ The shared cover file is written once during release creation. Its URL is refere
 
 Each row moves through explicit states: `reading`, `ready`, `uploading`, `uploaded`, or `failed`. Album creation has its own `creating`, `created`, or `failed` state.
 
-Uploads are sequential to keep progress predictable, reduce browser/server memory pressure, and make failure recovery clear. One row failure records its server message and continues with the next waiting row. The completion summary reports successful and failed counts. Failed rows expose Retry; uploaded rows cannot be accidentally resubmitted.
+After album creation, a bounded worker pool uploads between 1 and 4 tracks at once according to the current session setting. New work is pulled in visible release order, while every row maintains independent progress and completion state. Reordering is disabled after audio transfer begins so persisted positions cannot diverge from the reviewed order.
+
+One row failure records its server message without cancelling active workers or preventing other waiting rows from starting. The completion summary reports successful and failed counts. Failed rows expose Retry; uploaded rows cannot be accidentally resubmitted. Retrying selected failures uses the same concurrency limit and stable creation keys.
 
 If a request response is interrupted after persistence, the stable creation key makes retry safe. Client-side validation catches obvious unsupported or oversized files early, while the server remains authoritative. A `beforeunload` warning is active only while release creation or a track request is in progress.
 
@@ -193,11 +216,15 @@ Automated coverage includes:
 - Filename parsing and metadata precedence.
 - Shared defaults versus explicit per-track overrides.
 - Case-insensitive suggestion normalization and recent-use ordering.
+- Named-preset CRUD, ownership, optional fields, and per-creator name uniqueness.
+- Previous-track preset projection and exclusion of files, counters, creator IDs, and memberships.
+- Preset overwrite previews and one-time application behavior.
 - Row reordering and position generation.
 - Local-date parsing, formatting, month grids, and keyboard movement.
 - Switch form serialization and accessible state.
 - Album ownership checks and validation.
-- Sequential upload state transitions with partial success.
+- Bounded-concurrency scheduling at limits 1 through 4.
+- Parallel upload state transitions, out-of-order completion, partial success, and retry.
 - Retry idempotency for albums and tracks.
 - Successful `Track`, `AudioVersion`, and ordered `ReleaseTrack` creation.
 - Shared-cover reuse without duplicate file writes.
@@ -210,6 +237,9 @@ Verification ends with targeted tests, the complete `npm test` suite, scoped for
 - Album mode accepts multiple files, one shared cover, editable titles, and drag or keyboard ordering.
 - Album-level values act as defaults and each track can optionally override advanced fields.
 - Previous artist, genre, tags, license, and project values appear as ownership-scoped suggestions.
+- Creators can manage named full presets in Settings and apply them from the upload studio.
+- Previous owned tracks are available as complete presets without copying their files, counters, or relationships.
+- Album uploads run in parallel at a creator-configurable limit from 1 through 4, defaulting to 2.
 - Successful tracks remain saved and attached when another track fails.
 - Failed rows can be retried without duplicating persisted albums or tracks.
 - The release and ordered tracks appear in the existing Releases surface.
