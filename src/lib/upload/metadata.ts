@@ -1,13 +1,26 @@
 import type { UploadValuePatch, UploadValues } from "./types";
 
 const audioExtension = /\.[^.]+$/;
-const trackNumberPrefix = /^\s*\d+\s*-\s*/;
+const trackNumberPrefix = /^\s*\d+(?:\s*[._-]\s*|\s+)/;
 
 export function parseAudioFilename(filename: string): UploadValuePatch {
   const baseName = filename.replace(audioExtension, "").replace(trackNumberPrefix, "");
-  const parts = baseName.split(" - ");
-  const title = parts.pop()?.replaceAll("_", " ").trim();
-  const artist = parts.join(" - ").replaceAll("_", " ").trim();
+  const separator = /\s*-\s*/.exec(baseName);
+
+  if (!separator || separator.index === undefined) {
+    const title = baseName.replaceAll("_", " ").trim();
+
+    return title ? { title } : {};
+  }
+
+  const artist = baseName
+    .slice(0, separator.index)
+    .replaceAll("_", " ")
+    .trim();
+  const title = baseName
+    .slice(separator.index + separator[0].length)
+    .replaceAll("_", " ")
+    .trim();
 
   return {
     ...(artist ? { artist } : {}),
@@ -41,14 +54,22 @@ export function previewPresetOverwrite(
   preset: UploadValuePatch,
 ): Array<keyof UploadValues> {
   return (Object.keys(preset) as Array<keyof UploadValues>).filter((key) => {
-    const value = preset[key];
-    const isNonempty = typeof value === "string" ? value.trim().length > 0 : value !== undefined;
+    const presetValue = preset[key];
+    const currentValue = current[key];
+    const hasCurrentValue =
+      typeof currentValue === "string" ? currentValue.trim().length > 0 : currentValue !== undefined;
 
-    return isNonempty && value !== current[key];
+    return presetValue !== undefined && hasCurrentValue && presetValue !== currentValue;
   });
 }
 
 export function normalizeSuggestions(values: string[], limit = 8): string[] {
+  const normalizedLimit = Number.isFinite(limit) ? Math.floor(limit) : 8;
+
+  if (normalizedLimit <= 0) {
+    return [];
+  }
+
   const seen = new Set<string>();
   const normalized: string[] = [];
 
@@ -63,7 +84,7 @@ export function normalizeSuggestions(values: string[], limit = 8): string[] {
     seen.add(key);
     normalized.push(suggestion);
 
-    if (normalized.length === limit) {
+    if (normalized.length === normalizedLimit) {
       break;
     }
   }
