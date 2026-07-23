@@ -97,6 +97,7 @@ export function DatePicker({ label, name, value, onChange, disabled = false }: D
     () => buildMonthGrid(visibleMonth.year, visibleMonth.monthIndex),
     [visibleMonth.monthIndex, visibleMonth.year],
   );
+  const today = getToday();
 
   useEffect(() => {
     if (isOpen) {
@@ -154,9 +155,10 @@ export function DatePicker({ label, name, value, onChange, disabled = false }: D
     ? createElement(
         "div",
         {
-          "aria-label": `${label} calendar`,
+          "aria-labelledby": `${dialogId}-label`,
           className:
             "upload-calendar-popover absolute z-50 mt-2 w-[20rem] rounded-2xl border border-white/10 bg-surface-900 p-4 text-white shadow-2xl shadow-black/50",
+          id: dialogId,
           onKeyDown: (event: KeyboardEvent<HTMLDivElement>) => {
             if (event.key === "Escape") {
               event.preventDefault();
@@ -181,7 +183,7 @@ export function DatePicker({ label, name, value, onChange, disabled = false }: D
           ),
           createElement(
             "h2",
-            { className: "text-sm font-semibold", id: dialogId },
+            { className: "text-sm font-semibold", id: `${dialogId}-label` },
             monthTitle,
           ),
           createElement(
@@ -199,62 +201,84 @@ export function DatePicker({ label, name, value, onChange, disabled = false }: D
         createElement(
           "div",
           { "aria-label": monthTitle, className: "grid grid-cols-7 gap-1", role: "grid" },
-          ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((weekday) =>
+          createElement(
+            "div",
+            { className: "col-span-7 grid grid-cols-7 gap-1", role: "row" },
+            ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((weekday) =>
+              createElement(
+                "div",
+                {
+                  className: "pb-1 text-center text-[0.65rem] font-medium uppercase tracking-wide text-zinc-500",
+                  key: weekday,
+                  role: "columnheader",
+                },
+                weekday,
+              ),
+            ),
+          ),
+          ...Array.from({ length: 6 }, (_, weekIndex) =>
             createElement(
               "div",
               {
-                className: "pb-1 text-center text-[0.65rem] font-medium uppercase tracking-wide text-zinc-500",
-                key: weekday,
-                role: "columnheader",
+                className: "col-span-7 grid grid-cols-7 gap-1",
+                key: `week-${weekIndex}`,
+                role: "row",
               },
-              weekday,
+              ...days.slice(weekIndex * 7, weekIndex * 7 + 7).map((day) => {
+                const dayLabel = new Intl.DateTimeFormat("en-GB", {
+                  day: "numeric",
+                  month: "long",
+                  weekday: "long",
+                  year: "numeric",
+                }).format(
+                  createLocalNoon(
+                    Number(day.isoDate.slice(0, 4)),
+                    Number(day.isoDate.slice(5, 7)) - 1,
+                    Number(day.isoDate.slice(8, 10)),
+                  ),
+                );
+                const isSelected = day.isoDate === value;
+                const isToday = day.isoDate === today;
+
+                return createElement(
+                  "div",
+                  {
+                    "aria-current": isToday ? "date" : undefined,
+                    "aria-selected": isSelected,
+                    key: day.isoDate,
+                    role: "gridcell",
+                  },
+                  createElement(
+                    "button",
+                    {
+                      "aria-label": dayLabel,
+                      className: [
+                        "upload-control-focus h-9 w-full rounded-lg text-sm transition",
+                        isSelected
+                          ? "bg-brand-600 font-semibold text-white shadow-lg shadow-brand-600/20"
+                          : "text-zinc-200 hover:bg-white/10",
+                        day.isCurrentMonth ? "" : "text-zinc-600 hover:text-zinc-300",
+                      ]
+                        .filter(Boolean)
+                        .join(" "),
+                      onClick: () => selectDate(day.isoDate),
+                      onKeyDown: handleDayKeyDown,
+                      ref: (element: HTMLButtonElement | null) => {
+                        if (element) {
+                          dayRefs.current.set(day.isoDate, element);
+                        } else {
+                          dayRefs.current.delete(day.isoDate);
+                        }
+                      },
+                      tabIndex: day.isoDate === activeDate ? 0 : -1,
+                      type: "button",
+                    },
+                    day.dayOfMonth,
+                  ),
+                );
+              }),
             ),
           ),
-          ...days.map((day) => {
-            const dayLabel = new Intl.DateTimeFormat("en-GB", {
-              day: "numeric",
-              month: "long",
-              weekday: "long",
-              year: "numeric",
-            }).format(
-              createLocalNoon(
-                Number(day.isoDate.slice(0, 4)),
-                Number(day.isoDate.slice(5, 7)) - 1,
-                Number(day.isoDate.slice(8, 10)),
-              ),
-            );
-            const isSelected = day.isoDate === value;
-
-            return createElement(
-              "button",
-              {
-                "aria-current": isSelected ? "date" : undefined,
-                "aria-label": dayLabel,
-                className: [
-                  "upload-control-focus h-9 rounded-lg text-sm transition",
-                  isSelected
-                    ? "bg-brand-600 font-semibold text-white shadow-lg shadow-brand-600/20"
-                    : "text-zinc-200 hover:bg-white/10",
-                  day.isCurrentMonth ? "" : "text-zinc-600 hover:text-zinc-300",
-                ]
-                  .filter(Boolean)
-                  .join(" "),
-                key: day.isoDate,
-                onClick: () => selectDate(day.isoDate),
-                onKeyDown: handleDayKeyDown,
-                ref: (element: HTMLButtonElement | null) => {
-                  if (element) {
-                    dayRefs.current.set(day.isoDate, element);
-                  } else {
-                    dayRefs.current.delete(day.isoDate);
-                  }
-                },
-                tabIndex: day.isoDate === activeDate ? 0 : -1,
-                type: "button",
-              },
-              day.dayOfMonth,
-            );
-          }),
         ),
       )
     : null;

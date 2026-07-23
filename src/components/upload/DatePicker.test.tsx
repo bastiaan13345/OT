@@ -1,5 +1,5 @@
 import { createElement, useState } from "react";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
@@ -45,7 +45,7 @@ describe("DatePicker", () => {
     expect(onChange).toHaveBeenCalledWith("");
   });
 
-  it("opens a dark calendar and emits the selected ISO date after month navigation", async () => {
+  it("opens a dark calendar with grouped cells and a dialog linked to its trigger", async () => {
     const user = userEvent.setup();
     const onChange = vi.fn();
     render(
@@ -59,10 +59,21 @@ describe("DatePicker", () => {
 
     await user.click(screen.getByRole("button", { name: "Release date" }));
 
-    expect(screen.getByRole("dialog", { name: "Release date calendar" })).toHaveClass(
+    const trigger = screen.getByRole("button", { name: "Release date" });
+    const dialog = screen.getByRole("dialog", { name: "July 2026" });
+    const grid = screen.getByRole("grid", { name: "July 2026" });
+
+    expect(dialog).toHaveClass(
       "bg-surface-900",
     );
-    expect(screen.getByRole("grid", { name: "July 2026" })).toBeInTheDocument();
+    expect(trigger).toHaveAttribute("aria-controls", dialog.id);
+    expect(dialog).toHaveAttribute("aria-labelledby", `${dialog.id}-label`);
+    expect(within(grid).getAllByRole("gridcell")).toHaveLength(42);
+    expect(
+      within(grid)
+        .getAllByRole("row")
+        .filter((row) => within(row).queryAllByRole("gridcell").length > 0),
+    ).toHaveLength(6);
 
     await user.click(screen.getByRole("button", { name: "Next month" }));
     expect(screen.getByRole("button", { name: "Sunday, 23 August 2026" })).toHaveAttribute(
@@ -72,6 +83,28 @@ describe("DatePicker", () => {
     await user.click(screen.getByRole("button", { name: "Saturday, 1 August 2026" }));
 
     expect(onChange).toHaveBeenCalledWith("2026-08-01");
+  });
+
+  it.each([
+    ["{Enter}", "Enter"],
+    [" ", "Space"],
+  ])("selects the active date with %s", async (key) => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(
+      createElement(DatePicker, {
+        label: "Release date",
+        name: "releaseDate",
+        value: "2026-07-23",
+        onChange,
+      }),
+    );
+
+    await user.click(screen.getByRole("button", { name: "Release date" }));
+    screen.getByRole("button", { name: "Thursday, 23 July 2026" }).focus();
+    await user.keyboard(key);
+
+    expect(onChange).toHaveBeenCalledWith("2026-07-23");
   });
 
   it("moves the active day with arrow keys and restores trigger focus on Escape", async () => {
@@ -89,7 +122,7 @@ describe("DatePicker", () => {
 
     await user.keyboard("{Escape}");
 
-    expect(screen.queryByRole("dialog", { name: "Release date calendar" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("dialog", { name: "July 2026" })).not.toBeInTheDocument();
     expect(trigger).toHaveFocus();
   });
 });
