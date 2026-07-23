@@ -207,6 +207,52 @@ describe("SuggestionField", () => {
     }
   });
 
+  it("keeps a keyboard-active overflowed suggestion visible without scrolling stale options", async () => {
+    const user = userEvent.setup();
+    const scrollIntoView = vi.fn();
+    const originalScrollIntoView = Object.getOwnPropertyDescriptor(
+      HTMLElement.prototype,
+      "scrollIntoView",
+    );
+    Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {
+      configurable: true,
+      value: scrollIntoView,
+    });
+    const manySuggestions = Array.from({ length: 10 }, (_, index) => `Genre ${index + 1}`);
+    const onChange = vi.fn();
+    const renderField = (value: string) =>
+      createElement(SuggestionField, {
+        label: "Genre",
+        onChange,
+        suggestions: manySuggestions,
+        value,
+      });
+
+    try {
+      const { rerender } = render(renderField(""));
+      const input = screen.getByRole("combobox", { name: "Genre" });
+      await user.click(input);
+      await user.keyboard("{ArrowDown}".repeat(10));
+
+      const activeOption = screen.getByRole("option", { name: "Genre 10" });
+      expect(activeOption).toHaveAttribute("aria-selected", "true");
+      expect(scrollIntoView).toHaveBeenLastCalledWith({ block: "nearest" });
+      expect(scrollIntoView.mock.instances.at(-1)).toBe(activeOption);
+
+      scrollIntoView.mockClear();
+      rerender(renderField("No match"));
+
+      expect(input).not.toHaveAttribute("aria-activedescendant");
+      expect(scrollIntoView).not.toHaveBeenCalled();
+    } finally {
+      if (originalScrollIntoView) {
+        Object.defineProperty(HTMLElement.prototype, "scrollIntoView", originalScrollIntoView);
+      } else {
+        Reflect.deleteProperty(HTMLElement.prototype, "scrollIntoView");
+      }
+    }
+  });
+
   it("does not open or emit changes while disabled", async () => {
     const user = userEvent.setup();
     render(createElement(SuggestionFieldHarness, { disabled: true }));

@@ -1,6 +1,6 @@
 "use client";
 
-import { createElement, KeyboardEvent, useEffect, useId, useMemo, useState } from "react";
+import { createElement, KeyboardEvent, useEffect, useId, useMemo, useRef, useState } from "react";
 
 type SuggestionFieldProps = {
   label: string;
@@ -30,6 +30,7 @@ export function SuggestionField({
   const labelId = `${inputId}-label`;
   const [isOpen, setIsOpen] = useState(false);
   const [activeSuggestion, setActiveSuggestion] = useState<string | null>(null);
+  const optionRefs = useRef(new Map<string, HTMLButtonElement>());
   const filteredSuggestions = useMemo(() => {
     const query = value.trim().toLocaleLowerCase();
 
@@ -116,6 +117,18 @@ export function SuggestionField({
   const activeOptionId =
     isOpen && !disabled && activeIndex !== -1 ? `${listboxId}-option-${activeIndex}` : undefined;
 
+  useEffect(() => {
+    if (!isOpen || disabled || activeSuggestion === null || activeIndex === -1) {
+      return;
+    }
+
+    const activeOption = optionRefs.current.get(activeSuggestion);
+
+    if (typeof activeOption?.scrollIntoView === "function") {
+      activeOption.scrollIntoView({ block: "nearest" });
+    }
+  }, [activeIndex, activeSuggestion, disabled, isOpen]);
+
   const menu = isOpen && !disabled
     ? createElement(
         "div",
@@ -143,6 +156,13 @@ export function SuggestionField({
                   key: `${suggestion}-${index}`,
                   onClick: () => selectSuggestion(suggestion),
                   onPointerDown: (event) => event.preventDefault(),
+                  ref: (element: HTMLButtonElement | null) => {
+                    if (element) {
+                      optionRefs.current.set(suggestion, element);
+                    } else {
+                      optionRefs.current.delete(suggestion);
+                    }
+                  },
                   role: "option",
                   tabIndex: -1,
                   type: "button",
