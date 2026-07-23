@@ -1,11 +1,11 @@
 import type { UploadValuePatch, UploadValues } from "./types";
 
 const audioExtension = /\.[^.]+$/;
-const trackNumberPrefix = /^\s*\d+(?:\s*[._-]\s*|\s+)/;
+const trackNumberPrefix = /^\s*\d{1,3}(?:\s*[._-]\s*|\s+)/;
 
 export function parseAudioFilename(filename: string): UploadValuePatch {
   const baseName = filename.replace(audioExtension, "").replace(trackNumberPrefix, "");
-  const separator = /\s*-\s*/.exec(baseName);
+  const separator = /\s+-\s+/.exec(baseName);
 
   if (!separator || separator.index === undefined) {
     const title = baseName.replaceAll("_", " ").trim();

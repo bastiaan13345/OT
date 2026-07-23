@@ -46,6 +46,24 @@ describe("upload metadata helpers", () => {
     expect(parseAudioFilename("Static_Bloom.wav")).toEqual({ title: "Static Bloom" });
   });
 
+  it("preserves hyphens within an artist name", () => {
+    expect(parseAudioFilename("Jay-Z - Empire State of Mind.wav")).toEqual({
+      artist: "Jay-Z",
+      title: "Empire State of Mind",
+    });
+  });
+
+  it("preserves numeric hyphens within an artist name", () => {
+    expect(parseAudioFilename("blink-182 - All the Small Things.mp3")).toEqual({
+      artist: "blink-182",
+      title: "All the Small Things",
+    });
+  });
+
+  it("does not treat a four-digit year as a track number", () => {
+    expect(parseAudioFilename("2025 Mix.wav")).toEqual({ title: "2025 Mix" });
+  });
+
   it("resolves shared, detected, and overridden track values by precedence", () => {
     expect(
       resolveTrackValues(
