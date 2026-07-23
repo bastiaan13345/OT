@@ -29,7 +29,7 @@ export function SuggestionField({
   const listboxId = `${inputId}-listbox`;
   const labelId = `${inputId}-label`;
   const [isOpen, setIsOpen] = useState(false);
-  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const [activeSuggestion, setActiveSuggestion] = useState<string | null>(null);
   const filteredSuggestions = useMemo(() => {
     const query = value.trim().toLocaleLowerCase();
 
@@ -39,18 +39,18 @@ export function SuggestionField({
   useEffect(() => {
     if (disabled) {
       setIsOpen(false);
-      setActiveIndex(null);
+      setActiveSuggestion(null);
       return;
     }
 
-    if (activeIndex !== null && activeIndex >= filteredSuggestions.length) {
-      setActiveIndex(null);
+    if (activeSuggestion !== null && !filteredSuggestions.includes(activeSuggestion)) {
+      setActiveSuggestion(null);
     }
-  }, [activeIndex, disabled, filteredSuggestions.length]);
+  }, [activeSuggestion, disabled, filteredSuggestions]);
 
   const close = () => {
     setIsOpen(false);
-    setActiveIndex(null);
+    setActiveSuggestion(null);
   };
 
   const selectSuggestion = (suggestion: string) => {
@@ -68,12 +68,16 @@ export function SuggestionField({
     }
 
     setIsOpen(true);
-    setActiveIndex((current) => {
-      if (current === null) {
-        return direction === 1 ? 0 : filteredSuggestions.length - 1;
+    setActiveSuggestion((current) => {
+      const currentIndex = current === null ? -1 : filteredSuggestions.indexOf(current);
+
+      if (currentIndex === -1) {
+        return filteredSuggestions[direction === 1 ? 0 : filteredSuggestions.length - 1] ?? null;
       }
 
-      return (current + direction + filteredSuggestions.length) % filteredSuggestions.length;
+      return filteredSuggestions[
+        (currentIndex + direction + filteredSuggestions.length) % filteredSuggestions.length
+      ] ?? null;
     });
   };
 
@@ -94,10 +98,8 @@ export function SuggestionField({
       return;
     }
 
-    if (event.key === "Enter" && isOpen && activeIndex !== null) {
-      const activeSuggestion = filteredSuggestions[activeIndex];
-
-      if (activeSuggestion) {
+    if (event.key === "Enter" && isOpen && activeSuggestion !== null) {
+      if (filteredSuggestions.includes(activeSuggestion)) {
         event.preventDefault();
         selectSuggestion(activeSuggestion);
       }
@@ -110,10 +112,11 @@ export function SuggestionField({
     }
   };
 
+  const activeIndex = activeSuggestion === null ? -1 : filteredSuggestions.indexOf(activeSuggestion);
   const activeOptionId =
-    isOpen && activeIndex !== null ? `${listboxId}-option-${activeIndex}` : undefined;
+    isOpen && !disabled && activeIndex !== -1 ? `${listboxId}-option-${activeIndex}` : undefined;
 
-  const menu = isOpen
+  const menu = isOpen && !disabled
     ? createElement(
         "div",
         {
@@ -125,7 +128,7 @@ export function SuggestionField({
         },
         filteredSuggestions.length > 0
           ? filteredSuggestions.map((suggestion, index) => {
-              const isActive = index === activeIndex;
+              const isActive = suggestion === activeSuggestion;
 
               return createElement(
                 "button",
@@ -139,8 +142,9 @@ export function SuggestionField({
                   id: `${listboxId}-option-${index}`,
                   key: `${suggestion}-${index}`,
                   onClick: () => selectSuggestion(suggestion),
-                  onMouseDown: (event) => event.preventDefault(),
+                  onPointerDown: (event) => event.preventDefault(),
                   role: "option",
+                  tabIndex: -1,
                   type: "button",
                 },
                 suggestion,
@@ -166,7 +170,7 @@ export function SuggestionField({
       "aria-activedescendant": activeOptionId,
       "aria-autocomplete": "list",
       "aria-controls": isOpen ? listboxId : undefined,
-      "aria-expanded": isOpen,
+      "aria-expanded": isOpen && !disabled,
       "aria-labelledby": labelId,
       className:
         "upload-control-focus w-full rounded-lg border border-white/15 bg-surface-900 px-4 py-2.5 text-sm text-white placeholder:text-zinc-500 transition-colors disabled:cursor-not-allowed disabled:opacity-50",
@@ -177,7 +181,7 @@ export function SuggestionField({
       onChange: (event) => {
         onChange(event.target.value);
         setIsOpen(true);
-        setActiveIndex(null);
+        setActiveSuggestion(null);
       },
       onFocus: () => !disabled && setIsOpen(true),
       onKeyDown: handleKeyDown,

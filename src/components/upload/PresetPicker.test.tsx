@@ -58,6 +58,7 @@ describe("PresetPicker", () => {
 
     expect(onApply).toHaveBeenCalledWith({ title: "Old" });
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(trigger).toHaveFocus();
   });
 
   it("applies immediately when a preset does not overwrite populated fields", async () => {
@@ -89,14 +90,16 @@ describe("PresetPicker", () => {
       }),
     );
 
-    await user.click(screen.getByRole("button", { name: "Choose preset" }));
+    const trigger = screen.getByRole("button", { name: "Choose preset" });
+    await user.click(trigger);
     await user.click(screen.getByRole("button", { name: "Prior" }));
     await user.click(screen.getByRole("button", { name: "Cancel" }));
 
     expect(onApply).not.toHaveBeenCalled();
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(trigger).toHaveFocus();
 
-    await user.click(screen.getByRole("button", { name: "Choose preset" }));
+    await user.click(trigger);
     expect(screen.getByRole("dialog", { name: "Upload presets" })).toBeInTheDocument();
   });
 
@@ -124,6 +127,19 @@ describe("PresetPicker", () => {
     const confirmation = screen.getByRole("dialog", { name: "Apply Download policy preset" });
     expect(within(confirmation).getByText("Allow downloads")).toBeInTheDocument();
     expect(within(confirmation).getByText("Description")).toBeInTheDocument();
+    const booleanRow = within(confirmation).getByText("Allow downloads").closest("li");
+    const clearRow = within(confirmation).getByText("Description").closest("li");
+
+    expect(booleanRow).not.toBeNull();
+    expect(clearRow).not.toBeNull();
+    expect(within(booleanRow!).getByText("Current value:")).toHaveClass("sr-only");
+    expect(within(booleanRow!).getByText("Preset value:")).toHaveClass("sr-only");
+    expect(within(booleanRow!).getByText("Off")).toBeInTheDocument();
+    expect(within(booleanRow!).getByText("On")).toBeInTheDocument();
+    expect(within(clearRow!).getByText("Current value:")).toHaveClass("sr-only");
+    expect(within(clearRow!).getByText("Preset value:")).toHaveClass("sr-only");
+    expect(within(clearRow!).getByText("Existing description")).toBeInTheDocument();
+    expect(within(clearRow!).getByText("Empty")).toBeInTheDocument();
 
     await user.click(within(confirmation).getByRole("button", { name: "Apply preset" }));
 
@@ -169,5 +185,69 @@ describe("PresetPicker", () => {
 
     expect(trigger).toBeDisabled();
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("uses the latest preset and current values when props change during confirmation", async () => {
+    const user = openPicker();
+    const onApply = vi.fn();
+    const updatedPreset: UploadPresetView = { ...priorPreset, title: "Updated title" };
+    const renderPicker = (current: UploadValuePatch, presets: UploadPresetView[]) =>
+      createElement(PresetPicker, { current, onApply, presets });
+    const { rerender } = render(renderPicker({ title: "Current" }, [priorPreset]));
+
+    await user.click(screen.getByRole("button", { name: "Choose preset" }));
+    await user.click(screen.getByRole("button", { name: "Prior" }));
+    rerender(renderPicker({ title: "Changed current" }, [updatedPreset]));
+
+    const confirmation = screen.getByRole("dialog", { name: "Apply Prior preset" });
+    expect(within(confirmation).getByText("Changed current")).toBeInTheDocument();
+    expect(within(confirmation).getByText("Updated title")).toBeInTheDocument();
+
+    await user.click(within(confirmation).getByRole("button", { name: "Apply preset" }));
+
+    expect(onApply).toHaveBeenCalledWith({ title: "Updated title" });
+  });
+
+  it("closes and clears a confirmation when its pending preset is removed", async () => {
+    const user = openPicker();
+    const onApply = vi.fn();
+    const renderPicker = (presets: UploadPresetView[]) =>
+      createElement(PresetPicker, { current: { title: "Current" }, onApply, presets });
+    const { rerender } = render(renderPicker([priorPreset]));
+
+    const trigger = screen.getByRole("button", { name: "Choose preset" });
+    await user.click(trigger);
+    await user.click(screen.getByRole("button", { name: "Prior" }));
+    rerender(renderPicker([]));
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(trigger).toHaveAttribute("aria-expanded", "false");
+    expect(onApply).not.toHaveBeenCalled();
+  });
+
+  it("closes and resets an open picker when it becomes disabled", async () => {
+    const user = openPicker();
+    const onApply = vi.fn();
+    const renderPicker = (disabled: boolean) =>
+      createElement(PresetPicker, {
+        current: { title: "Current" },
+        disabled,
+        onApply,
+        presets: [priorPreset],
+      });
+    const { rerender } = render(renderPicker(false));
+
+    const trigger = screen.getByRole("button", { name: "Choose preset" });
+    await user.click(trigger);
+    await user.click(screen.getByRole("button", { name: "Prior" }));
+    rerender(renderPicker(true));
+
+    expect(trigger).toBeDisabled();
+    expect(trigger).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+
+    rerender(renderPicker(false));
+    await user.click(trigger);
+    expect(screen.getByRole("dialog", { name: "Upload presets" })).toBeInTheDocument();
   });
 });

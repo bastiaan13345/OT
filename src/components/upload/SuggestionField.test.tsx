@@ -1,5 +1,5 @@
 import { createElement, useState } from "react";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
@@ -96,6 +96,50 @@ describe("SuggestionField", () => {
     expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
   });
 
+  it("keeps options out of tab order so Tab from the combobox reaches the next control", async () => {
+    const user = userEvent.setup();
+    const [value, setValue] = ["", vi.fn()];
+    render(
+      createElement(
+        "div",
+        null,
+        createElement(SuggestionField, {
+          label: "Genre",
+          onChange: setValue,
+          suggestions,
+          value,
+        }),
+        createElement("button", { type: "button" }, "Continue"),
+      ),
+    );
+
+    const input = screen.getByRole("combobox", { name: "Genre" });
+    await user.click(input);
+
+    for (const option of screen.getAllByRole("option")) {
+      expect(option).toHaveAttribute("tabindex", "-1");
+    }
+
+    await user.tab();
+
+    expect(screen.getByRole("button", { name: "Continue" })).toHaveFocus();
+  });
+
+  it("prevents pointer focus transfer and selects a pointer-clicked option", async () => {
+    const user = userEvent.setup();
+    render(createElement(SuggestionFieldHarness));
+
+    const input = screen.getByRole("combobox", { name: "Genre" });
+    await user.click(input);
+    const option = screen.getByRole("option", { name: "Rock" });
+
+    expect(fireEvent.pointerDown(option)).toBe(false);
+    fireEvent.click(option);
+
+    expect(input).toHaveFocus();
+    expect(input).toHaveValue("Rock");
+  });
+
   it("passes typed free text to onChange without forcing a suggestion", async () => {
     const user = userEvent.setup();
     const onChange = vi.fn();
@@ -133,6 +177,36 @@ describe("SuggestionField", () => {
     expect(activeOption).toHaveAttribute("aria-selected", "true");
   });
 
+  it("keeps the active suggestion linked by identity across same-length controlled updates", async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    const renderField = (nextSuggestions: string[]) =>
+      createElement(SuggestionField, {
+        label: "Genre",
+        onChange,
+        suggestions: nextSuggestions,
+        value: "",
+      });
+    const { rerender } = render(renderField(["Ambient", "Rock"]));
+
+    const input = screen.getByRole("combobox", { name: "Genre" });
+    await user.click(input);
+    await user.keyboard("{ArrowDown}");
+    rerender(renderField(["Rock", "Ambient"]));
+
+    const ambient = screen.getByRole("option", { name: "Ambient" });
+    expect(ambient).toHaveAttribute("aria-selected", "true");
+    expect(input).toHaveAttribute("aria-activedescendant", ambient.id);
+    expect(screen.getByRole("option", { name: "Rock" })).toHaveAttribute("aria-selected", "false");
+
+    rerender(renderField(["Jazz", "Blues"]));
+
+    expect(input).not.toHaveAttribute("aria-activedescendant");
+    for (const option of screen.getAllByRole("option")) {
+      expect(option).toHaveAttribute("aria-selected", "false");
+    }
+  });
+
   it("does not open or emit changes while disabled", async () => {
     const user = userEvent.setup();
     render(createElement(SuggestionFieldHarness, { disabled: true }));
@@ -144,5 +218,28 @@ describe("SuggestionField", () => {
     expect(input).toBeDisabled();
     expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
     expect(input).toHaveValue("");
+  });
+
+  it("closes and clears its active descendant when disabled externally", async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    const renderField = (disabled: boolean) =>
+      createElement(SuggestionField, {
+        disabled,
+        label: "Genre",
+        onChange,
+        suggestions,
+        value: "",
+      });
+    const { rerender } = render(renderField(false));
+
+    const input = screen.getByRole("combobox", { name: "Genre" });
+    await user.click(input);
+    await user.keyboard("{ArrowDown}");
+    rerender(renderField(true));
+
+    expect(input).toBeDisabled();
+    expect(input).not.toHaveAttribute("aria-activedescendant");
+    expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
   });
 });

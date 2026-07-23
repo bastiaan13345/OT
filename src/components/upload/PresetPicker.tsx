@@ -69,32 +69,39 @@ export function PresetPicker({ current, presets, onApply, disabled = false }: Pr
   const triggerRef = useRef<HTMLButtonElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const [mode, setMode] = useState<"picker" | "confirmation" | null>(null);
-  const [pendingPreset, setPendingPreset] = useState<UploadPresetView | null>(null);
-  const isOpen = mode !== null;
+  const [pendingPresetId, setPendingPresetId] = useState<string | null>(null);
   const savedPresets = presets.filter((preset) => preset.source === "saved");
   const trackPresets = presets.filter((preset) => preset.source === "track");
+  const pendingPreset =
+    pendingPresetId === null ? null : presets.find((preset) => preset.id === pendingPresetId) ?? null;
+  const hasMissingPendingPreset = mode === "confirmation" && pendingPresetId !== null && !pendingPreset;
+  const isOpen = mode !== null && !disabled && !hasMissingPendingPreset;
+
+  const close = (restoreFocus = true) => {
+    setMode(null);
+    setPendingPresetId(null);
+
+    if (restoreFocus) {
+      triggerRef.current?.focus();
+    }
+  };
 
   useEffect(() => {
-    if (disabled && isOpen) {
-      setMode(null);
-      setPendingPreset(null);
+    if (disabled && mode !== null) {
+      close(false);
+      return;
     }
-  }, [disabled, isOpen]);
+
+    if (hasMissingPendingPreset) {
+      close();
+    }
+  }, [disabled, hasMissingPendingPreset, mode]);
 
   useEffect(() => {
     if (isOpen) {
       dialogRef.current?.focus();
     }
   }, [isOpen, mode]);
-
-  const close = (restoreFocus = true) => {
-    setMode(null);
-    setPendingPreset(null);
-
-    if (restoreFocus) {
-      triggerRef.current?.focus();
-    }
-  };
 
   const apply = (preset: UploadPresetView) => {
     onApply(toUploadPatch(preset));
@@ -114,7 +121,7 @@ export function PresetPicker({ current, presets, onApply, disabled = false }: Pr
       return;
     }
 
-    setPendingPreset(preset);
+    setPendingPresetId(preset.id);
     setMode("confirmation");
   };
 
@@ -157,7 +164,7 @@ export function PresetPicker({ current, presets, onApply, disabled = false }: Pr
   };
 
   const pickerDialog =
-    mode === "picker"
+    mode === "picker" && !disabled
       ? createElement(
           "div",
           {
@@ -198,7 +205,7 @@ export function PresetPicker({ current, presets, onApply, disabled = false }: Pr
       : null;
 
   const confirmationDialog =
-    mode === "confirmation" && pendingPreset
+    mode === "confirmation" && pendingPreset && !disabled
       ? (() => {
           const patch = toUploadPatch(pendingPreset);
           const overwrittenFields = previewPresetOverwrite(current, patch);
@@ -234,8 +241,10 @@ export function PresetPicker({ current, presets, onApply, disabled = false }: Pr
                   { className: "rounded-lg bg-black/20 px-3 py-2 text-sm", key: field },
                   createElement("span", { className: "font-medium text-white" }, fieldLabels[field]),
                   createElement("span", { className: "mx-2 text-zinc-500", "aria-hidden": true }, "→"),
+                  createElement("span", { className: "sr-only" }, "Current value: "),
                   createElement("span", { className: "text-zinc-300" }, formatValue(current[field])),
                   createElement("span", { className: "mx-2 text-zinc-500", "aria-hidden": true }, "→"),
+                  createElement("span", { className: "sr-only" }, "Preset value: "),
                   createElement("span", { className: "text-zinc-100" }, formatValue(patch[field])),
                 ),
               ),
@@ -282,7 +291,7 @@ export function PresetPicker({ current, presets, onApply, disabled = false }: Pr
         disabled,
         onClick: () => {
           if (!disabled) {
-            setPendingPreset(null);
+            setPendingPresetId(null);
             setMode("picker");
           }
         },
