@@ -10,7 +10,7 @@ import {
   useState,
 } from "react";
 import { CalendarDays, ChevronLeft, ChevronRight, X } from "lucide-react";
-import { buildMonthGrid, formatIsoDate, moveIsoDate } from "@/lib/upload/date";
+import { buildMonthGrid, formatIsoDate, isValidIsoDate, moveIsoDate } from "@/lib/upload/date";
 
 type CalendarMonth = {
   year: number;
@@ -36,20 +36,11 @@ function toIsoDate(date: Date) {
 }
 
 function getCalendarMonth(value: string): CalendarMonth | null {
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
-
-  if (!match) {
+  if (!isValidIsoDate(value)) {
     return null;
   }
 
-  const year = Number(match[1]);
-  const monthIndex = Number(match[2]) - 1;
-  const day = Number(match[3]);
-  const date = createLocalNoon(year, monthIndex, day);
-
-  return date.getFullYear() === year && date.getMonth() === monthIndex && date.getDate() === day
-    ? { year, monthIndex }
-    : null;
+  return { year: Number(value.slice(0, 4)), monthIndex: Number(value.slice(5, 7)) - 1 };
 }
 
 function getToday() {
@@ -82,39 +73,84 @@ function moveDateToMonth(value: string, targetMonth: CalendarMonth) {
 
 /** A controlled optional calendar-date field that serializes as an ISO date. */
 export function DatePicker({ label, name, value, onChange, disabled = false }: DatePickerProps) {
+  const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const dayRefs = useRef(new Map<string, HTMLButtonElement>());
   const labelId = useId();
   const dialogId = useId();
-  const selectedMonth = getCalendarMonth(value);
+  const normalizedValue = isValidIsoDate(value) ? value : "";
+  const selectedMonth = getCalendarMonth(normalizedValue);
   const [isOpen, setIsOpen] = useState(false);
+  const [shouldFocusDay, setShouldFocusDay] = useState(false);
   const [visibleMonth, setVisibleMonth] = useState<CalendarMonth>(
     () => selectedMonth ?? getCalendarMonth(getToday())!,
   );
-  const [activeDate, setActiveDate] = useState(() => value || getToday());
+  const [activeDate, setActiveDate] = useState(() => normalizedValue || getToday());
   const monthTitle = getMonthTitle(visibleMonth);
   const days = useMemo(
     () => buildMonthGrid(visibleMonth.year, visibleMonth.monthIndex),
     [visibleMonth.monthIndex, visibleMonth.year],
   );
   const today = getToday();
+  const displayValue = formatIsoDate(normalizedValue) || "No date selected";
 
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && shouldFocusDay) {
       dayRefs.current.get(activeDate)?.focus();
+      setShouldFocusDay(false);
     }
-  }, [activeDate, isOpen, visibleMonth]);
+  }, [activeDate, isOpen, shouldFocusDay, visibleMonth]);
+
+  useEffect(() => {
+    if (disabled) {
+      setIsOpen(false);
+      setShouldFocusDay(false);
+    }
+  }, [disabled]);
+
+  useEffect(() => {
+    if (!isOpen || disabled) {
+      return;
+    }
+
+    const nextActiveDate = normalizedValue || getToday();
+    setVisibleMonth(getCalendarMonth(nextActiveDate) ?? getCalendarMonth(getToday())!);
+    setActiveDate(nextActiveDate);
+    setShouldFocusDay(true);
+  }, [disabled, isOpen, normalizedValue]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    const closeOutside = (event: PointerEvent) => {
+      if (!rootRef.current?.contains(event.target as Node)) {
+        setIsOpen(false);
+        setShouldFocusDay(false);
+      }
+    };
+
+    document.addEventListener("pointerdown", closeOutside);
+    return () => document.removeEventListener("pointerdown", closeOutside);
+  }, [isOpen]);
 
   const openCalendar = () => {
-    const nextActiveDate = value || getToday();
+    if (disabled) {
+      return;
+    }
+
+    const nextActiveDate = normalizedValue || getToday();
 
     setVisibleMonth(getCalendarMonth(nextActiveDate) ?? getCalendarMonth(getToday())!);
     setActiveDate(nextActiveDate);
+    setShouldFocusDay(true);
     setIsOpen(true);
   };
 
   const closeCalendar = (restoreFocus = false) => {
     setIsOpen(false);
+    setShouldFocusDay(false);
 
     if (restoreFocus) {
       triggerRef.current?.focus();
@@ -122,11 +158,17 @@ export function DatePicker({ label, name, value, onChange, disabled = false }: D
   };
 
   const selectDate = (isoDate: string) => {
+    if (disabled) {
+      return;
+    }
     onChange(isoDate);
     closeCalendar(true);
   };
 
   const changeVisibleMonth = (delta: number) => {
+    if (disabled) {
+      return;
+    }
     const nextMonth = moveMonth(visibleMonth, delta);
 
     setVisibleMonth(nextMonth);
@@ -149,6 +191,7 @@ export function DatePicker({ label, name, value, onChange, disabled = false }: D
     event.preventDefault();
     setActiveDate(nextDate);
     setVisibleMonth(getCalendarMonth(nextDate) ?? visibleMonth);
+    setShouldFocusDay(true);
   };
 
   const dialog = isOpen
@@ -177,6 +220,7 @@ export function DatePicker({ label, name, value, onChange, disabled = false }: D
               className:
                 "upload-control-focus flex h-9 w-9 items-center justify-center rounded-lg text-zinc-300 transition hover:bg-white/10 hover:text-white",
               onClick: () => changeVisibleMonth(-1),
+              disabled,
               type: "button",
             },
             createElement(ChevronLeft, { "aria-hidden": true, className: "h-4 w-4" }),
@@ -193,6 +237,7 @@ export function DatePicker({ label, name, value, onChange, disabled = false }: D
               className:
                 "upload-control-focus flex h-9 w-9 items-center justify-center rounded-lg text-zinc-300 transition hover:bg-white/10 hover:text-white",
               onClick: () => changeVisibleMonth(1),
+              disabled,
               type: "button",
             },
             createElement(ChevronRight, { "aria-hidden": true, className: "h-4 w-4" }),
@@ -208,7 +253,7 @@ export function DatePicker({ label, name, value, onChange, disabled = false }: D
               createElement(
                 "div",
                 {
-                  className: "pb-1 text-center text-[0.65rem] font-medium uppercase tracking-wide text-zinc-500",
+                  className: "pb-1 text-center text-xs font-medium uppercase tracking-wide text-zinc-400",
                   key: weekday,
                   role: "columnheader",
                 },
@@ -257,12 +302,13 @@ export function DatePicker({ label, name, value, onChange, disabled = false }: D
                         isSelected
                           ? "bg-brand-600 font-semibold text-white shadow-lg shadow-brand-600/20"
                           : "text-zinc-200 hover:bg-white/10",
-                        day.isCurrentMonth ? "" : "text-zinc-600 hover:text-zinc-300",
+                        day.isCurrentMonth ? "" : "text-zinc-400 hover:text-zinc-300",
                       ]
                         .filter(Boolean)
                         .join(" "),
                       onClick: () => selectDate(day.isoDate),
                       onKeyDown: handleDayKeyDown,
+                      disabled,
                       ref: (element: HTMLButtonElement | null) => {
                         if (element) {
                           dayRefs.current.set(day.isoDate, element);
@@ -285,8 +331,8 @@ export function DatePicker({ label, name, value, onChange, disabled = false }: D
 
   return createElement(
     "div",
-    { className: "relative" },
-    createElement("input", { name, type: "hidden", value }),
+    { className: "relative", ref: rootRef },
+    createElement("input", { disabled, name, type: "hidden", value: normalizedValue }),
     createElement("span", { className: "mb-2 block text-sm font-medium text-zinc-200", id: labelId }, label),
     createElement(
       "div",
@@ -297,18 +343,18 @@ export function DatePicker({ label, name, value, onChange, disabled = false }: D
           "aria-controls": isOpen ? dialogId : undefined,
           "aria-expanded": isOpen,
           "aria-haspopup": "dialog",
-          "aria-labelledby": labelId,
+          "aria-label": `${label}: ${displayValue}`,
           className:
             "upload-control-focus flex min-h-11 flex-1 items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-3 text-left text-sm text-white transition hover:border-white/20 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50",
           disabled,
-          onClick: openCalendar,
+          onClick: () => (isOpen ? closeCalendar(true) : openCalendar()),
           ref: triggerRef,
           type: "button",
         },
         createElement(CalendarDays, { "aria-hidden": true, className: "h-4 w-4 shrink-0 text-brand-300" }),
-        createElement("span", { className: value ? "text-white" : "text-zinc-500" }, formatIsoDate(value) || "Choose date"),
+        createElement("span", { className: normalizedValue ? "text-white" : "text-zinc-400" }, displayValue),
       ),
-      value
+      normalizedValue
         ? createElement(
             "button",
             {

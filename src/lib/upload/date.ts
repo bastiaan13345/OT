@@ -43,6 +43,11 @@ function parseIsoDate(value: string) {
   return date;
 }
 
+/** Returns whether a value is a real ISO calendar date. */
+export function isValidIsoDate(value: string) {
+  return parseIsoDate(value) !== null;
+}
+
 /** Formats an ISO calendar date without parsing it as UTC. */
 export function formatIsoDate(value: string, locale = "en-GB") {
   const date = parseIsoDate(value);

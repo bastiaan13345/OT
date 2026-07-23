@@ -24,7 +24,7 @@ describe("DatePicker", () => {
   it("serializes its ISO value in a form and shows a human-readable trigger", () => {
     const { container } = render(createElement(DatePickerHarness));
 
-    expect(screen.getByRole("button", { name: "Release date" })).toHaveTextContent("23 July 2026");
+    expect(screen.getByRole("button", { name: "Release date: 23 July 2026" })).toHaveTextContent("23 July 2026");
     expect(new FormData(container.querySelector("form")!).get("releaseDate")).toBe("2026-07-23");
   });
 
@@ -57,9 +57,9 @@ describe("DatePicker", () => {
       }),
     );
 
-    await user.click(screen.getByRole("button", { name: "Release date" }));
+    await user.click(screen.getByRole("button", { name: "Release date: 23 July 2026" }));
 
-    const trigger = screen.getByRole("button", { name: "Release date" });
+    const trigger = screen.getByRole("button", { name: "Release date: 23 July 2026" });
     const dialog = screen.getByRole("dialog", { name: "July 2026" });
     const grid = screen.getByRole("grid", { name: "July 2026" });
 
@@ -74,6 +74,8 @@ describe("DatePicker", () => {
         .getAllByRole("row")
         .filter((row) => within(row).queryAllByRole("gridcell").length > 0),
     ).toHaveLength(6);
+    expect(screen.getByRole("columnheader", { name: "Mon" })).toHaveClass("text-xs", "text-zinc-400");
+    expect(screen.getByRole("button", { name: "Monday, 29 June 2026" })).toHaveClass("text-zinc-400");
 
     await user.click(screen.getByRole("button", { name: "Next month" }));
     expect(screen.getByRole("button", { name: "Sunday, 23 August 2026" })).toHaveAttribute(
@@ -100,7 +102,7 @@ describe("DatePicker", () => {
       }),
     );
 
-    await user.click(screen.getByRole("button", { name: "Release date" }));
+    await user.click(screen.getByRole("button", { name: "Release date: 23 July 2026" }));
     screen.getByRole("button", { name: "Thursday, 23 July 2026" }).focus();
     await user.keyboard(key);
 
@@ -111,18 +113,142 @@ describe("DatePicker", () => {
     const user = userEvent.setup();
     render(createElement(DatePickerHarness));
 
-    const trigger = screen.getByRole("button", { name: "Release date" });
+    const trigger = screen.getByRole("button", { name: "Release date: 23 July 2026" });
     await user.click(trigger);
 
-    const selectedDay = screen.getByRole("button", { name: /23 July 2026/ });
+    const selectedDay = screen.getByRole("button", { name: "Thursday, 23 July 2026" });
     selectedDay.focus();
     fireEvent.keyDown(selectedDay, { key: "ArrowDown" });
 
-    expect(screen.getByRole("button", { name: /30 July 2026/ })).toHaveFocus();
+    expect(screen.getByRole("button", { name: "Thursday, 30 July 2026" })).toHaveFocus();
 
     await user.keyboard("{Escape}");
 
     expect(screen.queryByRole("dialog", { name: "July 2026" })).not.toBeInTheDocument();
     expect(trigger).toHaveFocus();
+  });
+
+  it("keeps month navigation focus on the button for repeated keyboard navigation", async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(
+      createElement(DatePicker, {
+        label: "Release date",
+        name: "releaseDate",
+        value: "2026-07-23",
+        onChange,
+      }),
+    );
+
+    await user.click(screen.getByRole("button", { name: "Release date: 23 July 2026" }));
+    const nextMonth = screen.getByRole("button", { name: "Next month" });
+    await user.click(nextMonth);
+
+    expect(nextMonth).toHaveFocus();
+    await user.keyboard("{Enter}");
+
+    expect(screen.getByRole("grid", { name: "September 2026" })).toBeInTheDocument();
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it("synchronizes a controlled value update while open before selecting", async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    const { rerender } = render(
+      createElement(DatePicker, {
+        label: "Release date",
+        name: "releaseDate",
+        value: "2026-07-23",
+        onChange,
+      }),
+    );
+
+    await user.click(screen.getByRole("button", { name: "Release date: 23 July 2026" }));
+    rerender(
+      createElement(DatePicker, {
+        label: "Release date",
+        name: "releaseDate",
+        value: "2026-08-05",
+        onChange,
+      }),
+    );
+
+    expect(screen.getByRole("grid", { name: "August 2026" })).toBeInTheDocument();
+    const activeDay = screen.getByRole("button", { name: "Wednesday, 5 August 2026" });
+    expect(activeDay).toHaveFocus();
+    await user.keyboard("{Enter}");
+
+    expect(onChange).toHaveBeenCalledWith("2026-08-05");
+  });
+
+  it("closes and removes disabled date controls from form serialization", async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    const renderPicker = (disabled: boolean) =>
+      createElement(
+        "form",
+        null,
+        createElement(DatePicker, {
+          disabled,
+          label: "Release date",
+          name: "releaseDate",
+          value: "2026-07-23",
+          onChange,
+        }),
+      );
+    const { container, rerender } = render(renderPicker(false));
+
+    await user.click(screen.getByRole("button", { name: "Release date: 23 July 2026" }));
+    rerender(renderPicker(true));
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Release date: 23 July 2026" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Clear date" })).toBeDisabled();
+    expect(container.querySelector('input[name="releaseDate"]')).toBeDisabled();
+    expect(new FormData(container.querySelector("form")!).get("releaseDate")).toBeNull();
+  });
+
+  it("normalizes an invalid controlled value to an empty optional date", async () => {
+    const user = userEvent.setup();
+    const { container } = render(
+      createElement(
+        "form",
+        null,
+        createElement(DatePicker, {
+          label: "Release date",
+          name: "releaseDate",
+          value: "2026-02-30",
+          onChange: vi.fn(),
+        }),
+      ),
+    );
+
+    expect(new FormData(container.querySelector("form")!).get("releaseDate")).toBe("");
+    const trigger = screen.getByRole("button", { name: "Release date: No date selected" });
+    expect(trigger).toHaveTextContent("No date selected");
+
+    await user.click(trigger);
+
+    const activeDay = within(screen.getByRole("grid")).getAllByRole("button").find(
+      (button) => button.getAttribute("tabindex") === "0",
+    );
+    expect(activeDay).toBeDefined();
+    expect(activeDay).not.toHaveAccessibleName(/2026-02-30/);
+  });
+
+  it("toggles from its trigger and closes when a pointer starts outside", async () => {
+    const user = userEvent.setup();
+    render(createElement(DatePickerHarness));
+
+    const trigger = screen.getByRole("button", { name: "Release date: 23 July 2026" });
+    await user.click(trigger);
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+
+    await user.click(trigger);
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+
+    await user.click(trigger);
+    fireEvent.pointerDown(document.body);
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 });

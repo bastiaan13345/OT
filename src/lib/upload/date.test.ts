@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { buildMonthGrid, formatIsoDate, moveIsoDate } from "./date";
+import { buildMonthGrid, formatIsoDate, isValidIsoDate, moveIsoDate } from "./date";
 
 describe("local upload date helpers", () => {
   it("formats ISO dates without changing the local calendar day", () => {
@@ -36,5 +36,12 @@ describe("local upload date helpers", () => {
     expect(moveIsoDate("", "ArrowDown")).toBe("");
     expect(moveIsoDate("not-a-date", "ArrowDown")).toBe("not-a-date");
     expect(moveIsoDate("2026-07-23", "Enter")).toBe("2026-07-23");
+  });
+
+  it("recognizes only real ISO calendar dates", () => {
+    expect(isValidIsoDate("2026-07-23")).toBe(true);
+    expect(isValidIsoDate("2026-02-30")).toBe(false);
+    expect(isValidIsoDate("not-a-date")).toBe(false);
+    expect(isValidIsoDate("")).toBe(false);
   });
 });
