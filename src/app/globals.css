@@ -18,3 +18,20 @@
     text-wrap: balance;
   }
 }
+
+/* Upload and settings controls remain legible when embedded in dark surfaces. */
+.upload-calendar-popover {
+  color-scheme: dark;
+}
+
+.upload-control-focus:focus-visible {
+  outline: 2px solid rgb(251 113 133);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .upload-calendar-popover *,
+  .upload-control-focus {
+    transition-duration: 0.01ms !important;
+  }
+}

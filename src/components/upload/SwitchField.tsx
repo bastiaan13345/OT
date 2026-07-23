@@ -1,0 +1,58 @@
+"use client";
+
+import { createElement, useId } from "react";
+
+type SwitchFieldProps = {
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+  name: string;
+  label: string;
+  disabled?: boolean;
+};
+
+/** A controlled switch with an explicit hidden form value for server actions. */
+export function SwitchField({
+  checked,
+  onChange,
+  name,
+  label,
+  disabled = false,
+}: SwitchFieldProps) {
+  const labelId = useId();
+
+  return createElement(
+    "div",
+    { className: "flex items-center justify-between gap-4" },
+    createElement("input", {
+      disabled,
+      name,
+      type: "hidden",
+      value: checked ? "on" : "off",
+    }),
+    createElement("span", { className: "text-sm font-medium text-zinc-200", id: labelId }, label),
+    createElement(
+      "button",
+      {
+        "aria-checked": checked,
+        "aria-labelledby": labelId,
+        className: [
+          "upload-control-focus relative inline-flex h-7 w-12 shrink-0 items-center rounded-full border p-0.5 transition-colors disabled:cursor-not-allowed disabled:opacity-50",
+          checked
+            ? "border-brand-400/70 bg-brand-600 shadow-lg shadow-brand-600/20"
+            : "border-white/15 bg-white/10 hover:bg-white/15",
+        ].join(" "),
+        disabled,
+        onClick: () => onChange(!checked),
+        role: "switch",
+        type: "button",
+      },
+      createElement("span", {
+        "aria-hidden": true,
+        className: [
+          "h-6 w-6 rounded-full bg-white shadow-sm transition-transform motion-reduce:transition-none",
+          checked ? "translate-x-5" : "translate-x-0",
+        ].join(" "),
+      }),
+    ),
+  );
+}
