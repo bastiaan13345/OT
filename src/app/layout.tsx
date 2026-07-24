@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/Navbar";
 import { SessionProvider } from "@/components/providers/SessionProvider";
+import { PlayerProvider } from "@/components/providers/PlayerProvider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -20,11 +21,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
-      <body className={`${inter.variable} font-sans antialiased bg-surface-900 text-white`}>
+    <html lang="en">
+      <body className={`${inter.variable} bg-canvas font-sans text-ink antialiased`}>
         <SessionProvider>
-          <Navbar />
-          <main className="min-h-screen pt-16 pb-24">{children}</main>
+          <PlayerProvider>
+            <Navbar />
+            <main className="min-h-screen pb-32 pt-20 md:pl-64 md:pt-0">{children}</main>
+          </PlayerProvider>
         </SessionProvider>
       </body>
     </html>

@@ -1,1 +1,16 @@
 node_modules/
+.next/
+.next-dev/
+.next-build/
+.next-cache-*/
+*.tsbuildinfo
+.DS_Store
+
+# Generated local audio storage
+storage/audio/
+storage/enhanced/
+public/uploads/audio/
+public/uploads/enhanced/
+public/uploads/covers/*
+!public/uploads/covers/sample.jpg
+!public/uploads/covers/sample2.jpg

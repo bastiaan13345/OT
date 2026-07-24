@@ -1,8 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
+import { redirect } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { Music2, Play, TrendingUp, Upload, Plus, Eye, Heart, MessageCircle, Download } from "lucide-react";
+import { Music2, Play, TrendingUp, Upload, Plus, Eye, Heart, MessageCircle, Download, SlidersHorizontal, BarChart3, Disc3 } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import { formatDuration, formatPlays } from "@/lib/utils";
 import { DeleteTrackButton } from "@/components/DeleteTrackButton";
@@ -10,8 +11,12 @@ import { authOptions } from "@/lib/auth";
 
 export default async function AdminDashboardPage() {
   const session = await getServerSession(authOptions);
+  if (!session) redirect("/admin/login");
+  if (session.user.role !== "CREATOR" && session.user.role !== "ADMIN") {
+    redirect("/library");
+  }
   const tracks = await prisma.track.findMany({
-    where: session?.user.role === "ADMIN" ? undefined : { creatorId: session?.user.id },
+    where: session.user.role === "ADMIN" ? undefined : { creatorId: session.user.id },
     include: {
       likes: true,
       comments: true,
@@ -26,16 +31,16 @@ export default async function AdminDashboardPage() {
   const downloadsEnabled = tracks.filter((t) => t.allowDownload).length;
 
   return (
-    <div className="p-8">
+    <div className="px-4 py-8 sm:p-8">
       {/* Header */}
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-white">Dashboard</h1>
-          <p className="mt-1 text-zinc-500">Manage your music catalog</p>
+          <h1 className="text-3xl font-bold text-ink">Dashboard</h1>
+          <p className="mt-1 text-muted">Manage your music catalog</p>
         </div>
         <Link
           href="/admin/upload"
-          className="flex items-center gap-2 rounded-lg bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-brand-600/20 hover:bg-brand-500 transition-colors"
+          className="flex items-center gap-2 rounded-lg bg-ink px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2"
         >
           <Plus className="h-4 w-4" />
           Upload Track
@@ -49,76 +54,102 @@ export default async function AdminDashboardPage() {
             label: "Total Tracks",
             value: String(tracks.length),
             icon: Music2,
-            color: "text-brand-400 bg-brand-500/10",
+            color: "text-ink bg-soft",
           },
           {
             label: "Total Plays",
             value: formatPlays(totalPlays),
             icon: Play,
-            color: "text-green-400 bg-green-500/10",
+            color: "text-ink bg-soft",
           },
           {
             label: "Likes",
             value: String(totalLikes),
             icon: Heart,
-            color: "text-blue-400 bg-blue-500/10",
+            color: "text-ink bg-soft",
           },
           {
             label: "Comments",
             value: String(totalComments),
             icon: MessageCircle,
-            color: "text-yellow-400 bg-yellow-500/10",
+            color: "text-ink bg-soft",
           },
         ].map((stat) => (
           <div
             key={stat.label}
-            className="rounded-xl border border-white/5 bg-surface-800 p-6"
+            className="rounded-xl border border-line bg-panel p-6"
           >
             <div
               className={`mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg ${stat.color}`}
             >
               <stat.icon className="h-5 w-5" />
             </div>
-            <div className="text-2xl font-bold text-white">{stat.value}</div>
-            <div className="text-sm text-zinc-500">{stat.label}</div>
+            <div className="text-2xl font-bold text-ink">{stat.value}</div>
+            <div className="text-sm text-muted">{stat.label}</div>
           </div>
         ))}
       </div>
 
+      {/* Quick navigation to creator tools */}
+      <div className="mb-8 grid gap-4 sm:grid-cols-3">
+        {[
+          { href: "/admin/upload", label: "Upload a track", desc: "Add new music to your catalog", icon: Upload },
+          { href: "/admin/releases", label: "Manage releases", desc: "Singles, EPs & albums", icon: Disc3 },
+          { href: "/admin/analytics", label: "View analytics", desc: "Plays, listeners & trends", icon: BarChart3 },
+        ].map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            className="group flex items-center gap-4 rounded-xl border border-line bg-white p-5 transition-colors hover:border-ink hover:bg-panel focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2"
+          >
+            <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-soft text-ink transition-colors group-hover:bg-white">
+              <item.icon className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="font-semibold text-ink">{item.label}</p>
+              <p className="text-sm text-muted">{item.desc}</p>
+            </div>
+          </Link>
+        ))}
+      </div>
+
       {/* Track List */}
-      <div className="rounded-xl border border-white/5 bg-surface-800 overflow-hidden">
-        <div className="border-b border-white/5 p-6">
-          <h2 className="text-lg font-semibold text-white">Your Tracks</h2>
+      <div className="overflow-hidden rounded-xl border border-line bg-white">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line p-6">
+          <h2 className="text-lg font-semibold text-ink">Your Tracks</h2>
+          <span className="text-xs text-muted">
+            Open a track in Studio to analyze &amp; enhance audio
+          </span>
         </div>
 
         {tracks.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="mb-4 rounded-full bg-white/5 p-6">
-              <Music2 className="h-12 w-12 text-zinc-600" />
+            <div className="mb-4 rounded-full bg-soft p-6">
+              <Music2 className="h-12 w-12 text-faint" />
             </div>
-            <h3 className="text-lg font-semibold text-white mb-2">
+            <h3 className="mb-2 text-lg font-semibold text-ink">
               No tracks yet
             </h3>
-            <p className="text-zinc-500 mb-6">
+            <p className="mb-6 text-muted">
               Upload your first track to get started
             </p>
             <Link
               href="/admin/upload"
-              className="flex items-center gap-2 rounded-lg bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-500 transition-colors"
+              className="flex items-center gap-2 rounded-lg bg-ink px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2"
             >
               <Upload className="h-4 w-4" />
               Upload Track
             </Link>
           </div>
         ) : (
-          <div className="divide-y divide-white/5">
+          <div className="divide-y divide-line">
             {tracks.map((track) => (
               <div
                 key={track.id}
-                className="flex items-center gap-4 p-4 hover:bg-white/[0.02] transition-colors"
+                className="flex items-center gap-4 p-4 transition-colors hover:bg-panel"
               >
                 {/* Cover */}
-                <div className="relative h-14 w-14 flex-shrink-0 overflow-hidden rounded-lg bg-surface-700">
+                <div className="relative h-14 w-14 flex-shrink-0 overflow-hidden rounded-lg bg-soft">
                   {track.coverUrl ? (
                     <Image
                       src={track.coverUrl}
@@ -128,7 +159,7 @@ export default async function AdminDashboardPage() {
                     />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center">
-                      <Music2 className="h-6 w-6 text-zinc-600" />
+                      <Music2 className="h-6 w-6 text-faint" />
                     </div>
                   )}
                 </div>
@@ -136,7 +167,7 @@ export default async function AdminDashboardPage() {
                 {/* Info */}
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <p className="truncate font-semibold text-white">
+                    <p className="truncate font-semibold text-ink">
                       {track.title}
                     </p>
                     {track.featured && <Badge>Featured</Badge>}
@@ -145,10 +176,10 @@ export default async function AdminDashboardPage() {
                     )}
                     {track.allowDownload && <Badge>Download</Badge>}
                   </div>
-                  <div className="flex items-center gap-3 text-xs text-zinc-500 mt-0.5">
+                  <div className="mt-0.5 flex items-center gap-3 text-xs text-muted">
                     <span>{track.artist}</span>
                     {track.genre && (
-                      <span className="text-brand-400">{track.genre}</span>
+                      <span className="text-ink">{track.genre}</span>
                     )}
                     {track.duration && (
                       <span>{formatDuration(track.duration)}</span>
@@ -158,7 +189,7 @@ export default async function AdminDashboardPage() {
                 </div>
 
                 {/* Plays */}
-                <div className="hidden md:grid grid-cols-3 gap-4 text-sm text-zinc-400">
+                <div className="hidden grid-cols-3 gap-4 text-sm text-muted md:grid">
                   <span className="flex items-center gap-1.5">
                     <Play className="h-3.5 w-3.5 fill-current" />
                     {formatPlays(track.plays)}
@@ -176,8 +207,15 @@ export default async function AdminDashboardPage() {
                 {/* Actions */}
                 <div className="flex items-center gap-1">
                   <Link
+                    href={`/admin/studio/${track.id}`}
+                    className="flex h-8 w-8 items-center justify-center rounded-lg text-muted transition-colors hover:bg-soft hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink"
+                    title="Open in Creator Studio"
+                  >
+                    <SlidersHorizontal className="h-4 w-4" />
+                  </Link>
+                  <Link
                     href={`/track/${track.id}`}
-                    className="flex h-8 w-8 items-center justify-center rounded-lg text-zinc-500 hover:text-zinc-300 hover:bg-white/5 transition-colors"
+                    className="flex h-8 w-8 items-center justify-center rounded-lg text-muted transition-colors hover:bg-soft hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink"
                     title="View public page"
                   >
                     <Eye className="h-4 w-4" />
@@ -191,26 +229,26 @@ export default async function AdminDashboardPage() {
       </div>
 
       <div className="mt-8 grid gap-4 md:grid-cols-3">
-        <div className="rounded-xl border border-white/5 bg-surface-800 p-6">
-          <div className="mb-2 flex items-center gap-2 text-sm text-zinc-500">
+        <div className="rounded-xl border border-line bg-panel p-6">
+          <div className="mb-2 flex items-center gap-2 text-sm text-muted">
             <Eye className="h-4 w-4" />
             Published catalog
           </div>
-          <div className="text-2xl font-bold text-white">{publishedCount}</div>
+          <div className="text-2xl font-bold text-ink">{publishedCount}</div>
         </div>
-        <div className="rounded-xl border border-white/5 bg-surface-800 p-6">
-          <div className="mb-2 flex items-center gap-2 text-sm text-zinc-500">
+        <div className="rounded-xl border border-line bg-panel p-6">
+          <div className="mb-2 flex items-center gap-2 text-sm text-muted">
             <Download className="h-4 w-4" />
             Download-enabled tracks
           </div>
-          <div className="text-2xl font-bold text-white">{downloadsEnabled}</div>
+          <div className="text-2xl font-bold text-ink">{downloadsEnabled}</div>
         </div>
-        <div className="rounded-xl border border-white/5 bg-surface-800 p-6">
-          <div className="mb-2 flex items-center gap-2 text-sm text-zinc-500">
+        <div className="rounded-xl border border-line bg-panel p-6">
+          <div className="mb-2 flex items-center gap-2 text-sm text-muted">
             <TrendingUp className="h-4 w-4" />
             Engagement rate
           </div>
-          <div className="text-2xl font-bold text-white">
+          <div className="text-2xl font-bold text-ink">
             {totalPlays ? `${Math.round(((totalLikes + totalComments) / totalPlays) * 100)}%` : "0%"}
           </div>
         </div>

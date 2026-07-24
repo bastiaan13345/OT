@@ -135,7 +135,7 @@ export function SuggestionField({
         {
           "aria-label": `${label} suggestions`,
           className:
-            "absolute z-50 mt-2 max-h-60 w-full overflow-auto rounded-xl border border-white/10 bg-surface-900 p-1 shadow-2xl shadow-black/50",
+            "absolute z-50 mt-2 max-h-60 w-full overflow-auto rounded-xl border border-line bg-white p-1 shadow-2xl shadow-black/10",
           id: listboxId,
           role: "listbox",
         },
@@ -150,7 +150,7 @@ export function SuggestionField({
                   className: `block w-full rounded-lg px-3 py-2 text-left text-sm transition-colors ${
                     isActive
                       ? "bg-brand-600 text-white"
-                      : "text-zinc-200 hover:bg-white/10 hover:text-white"
+                      : "text-ink hover:bg-soft hover:text-ink"
                   }`,
                   id: `${listboxId}-option-${index}`,
                   key: `${suggestion}-${index}`,
@@ -172,7 +172,7 @@ export function SuggestionField({
             })
           : createElement(
               "p",
-              { className: "px-3 py-2 text-sm text-zinc-400" },
+              { className: "px-3 py-2 text-sm text-muted" },
               "No matching suggestions",
             ),
       )
@@ -183,7 +183,7 @@ export function SuggestionField({
     { className: "relative" },
     createElement(
       "label",
-      { className: "mb-2 block text-sm font-medium text-zinc-200", htmlFor: inputId, id: labelId },
+      { className: "mb-2 block text-sm font-medium text-ink", htmlFor: inputId, id: labelId },
       label,
     ),
     createElement("input", {
@@ -193,7 +193,7 @@ export function SuggestionField({
       "aria-expanded": isOpen && !disabled,
       "aria-labelledby": labelId,
       className:
-        "upload-control-focus w-full rounded-lg border border-white/15 bg-surface-900 px-4 py-2.5 text-sm text-white placeholder:text-zinc-500 transition-colors disabled:cursor-not-allowed disabled:opacity-50",
+        "upload-control-focus w-full rounded-lg border border-line bg-white px-4 py-2.5 text-sm text-ink placeholder:text-faint transition-colors disabled:cursor-not-allowed disabled:opacity-50",
       disabled,
       id: inputId,
       name,

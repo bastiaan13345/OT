@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { signIn } from "next-auth/react";
+import { getSession, signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Music2, Lock, Mail, AlertCircle } from "lucide-react";
+import Image from "next/image";
+import { Lock, Mail, AlertCircle } from "lucide-react";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 
@@ -28,34 +29,36 @@ export default function AdminLoginPage() {
 
     setLoading(false);
 
-    if (result?.error) {
+    if (!result?.ok || result.error) {
       setError("Invalid email or password.");
     } else {
-      router.push("/admin");
+      const session = await getSession();
+      router.push(session?.user.role === "LISTENER" ? "/library" : "/admin");
+      router.refresh();
     }
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-6">
+    <div className="flex min-h-screen items-center justify-center bg-white px-6">
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="mb-8 flex flex-col items-center text-center">
-          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-600 shadow-xl shadow-brand-600/30">
-            <Music2 className="h-7 w-7 text-white" />
+          <div className="mb-4">
+            <Image src="/Infini.svg" alt="Infini" width={72} height={72} priority />
           </div>
-          <h1 className="text-2xl font-bold text-white">Admin Panel</h1>
-          <p className="mt-1 text-sm text-zinc-500">Sign in to listen, follow artists, and manage music</p>
+          <h1 className="text-2xl font-bold text-ink">Welcome back</h1>
+          <p className="mt-1 text-sm text-muted">Sign in to listen, follow artists, and manage music</p>
         </div>
 
         {/* Form */}
-        <div className="rounded-2xl border border-white/10 bg-surface-800 p-8">
+        <div className="rounded-2xl border border-line bg-panel p-8">
           <form onSubmit={handleSubmit} className="flex flex-col gap-5">
             <div>
-              <label className="mb-2 block text-sm font-medium text-zinc-300">
+              <label className="mb-2 block text-sm font-medium text-ink">
                 Email
               </label>
               <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted" />
                 <Input
                   type="email"
                   placeholder="admin@opentunes.io"
@@ -69,11 +72,11 @@ export default function AdminLoginPage() {
             </div>
 
             <div>
-              <label className="mb-2 block text-sm font-medium text-zinc-300">
+              <label className="mb-2 block text-sm font-medium text-ink">
                 Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted" />
                 <Input
                   type="password"
                   placeholder="••••••••"
@@ -86,7 +89,7 @@ export default function AdminLoginPage() {
             </div>
 
             {error && (
-              <div className="flex items-center gap-2 rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+              <div role="alert" className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
                 <AlertCircle className="h-4 w-4 flex-shrink-0" />
                 {error}
               </div>
@@ -100,9 +103,9 @@ export default function AdminLoginPage() {
             >
               {loading ? "Signing in..." : "Sign in"}
             </Button>
-            <p className="text-center text-sm text-zinc-500">
-              New creator?{" "}
-              <Link href="/signup" className="font-medium text-brand-400 hover:text-brand-300">
+            <p className="text-center text-sm text-muted">
+              New to OpenTunes?{" "}
+              <Link href="/signup" className="rounded-sm font-medium text-ink underline decoration-line underline-offset-4 hover:decoration-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink">
                 Create an account
               </Link>
             </p>

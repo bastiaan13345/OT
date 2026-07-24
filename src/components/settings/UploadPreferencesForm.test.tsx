@@ -95,13 +95,13 @@ describe("UploadPreferencesForm", () => {
     await waitFor(() => expect(actions.deleteUploadPreset).toHaveBeenCalledWith("preset-1"));
   });
 
-  it("shows safe action errors in an alert on the dark accessible surface", async () => {
+  it("shows safe action errors in an alert on the light accessible surface", async () => {
     actions.updateUploadConcurrency.mockResolvedValueOnce({ ok: false, error: "Could not save preferences." });
     const user = userEvent.setup();
     render(createElement(UploadPreferencesForm, { concurrency: 2, presets: [] }));
 
     const region = screen.getByRole("region", { name: "Upload preferences" });
-    expect(region).not.toHaveClass("bg-white");
+    expect(region).toHaveClass("bg-canvas");
     await user.click(screen.getByRole("button", { name: "Save concurrency" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent("Could not save preferences.");

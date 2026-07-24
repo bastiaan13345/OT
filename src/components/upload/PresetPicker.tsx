@@ -142,7 +142,7 @@ export function PresetPicker({ current, presets, onApply, disabled = false }: Pr
     return createElement(
       "section",
       { "aria-labelledby": sectionId, className: "space-y-2", key: title },
-      createElement("h3", { className: "text-xs font-semibold uppercase tracking-wide text-zinc-400", id: sectionId }, title),
+      createElement("h3", { className: "text-xs font-semibold uppercase tracking-wide text-muted", id: sectionId }, title),
       createElement(
         "div",
         { className: "space-y-1" },
@@ -151,7 +151,7 @@ export function PresetPicker({ current, presets, onApply, disabled = false }: Pr
             "button",
             {
               className:
-                "upload-control-focus flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm text-zinc-200 transition hover:bg-white/10 hover:text-white",
+                "upload-control-focus flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm text-ink transition hover:bg-soft hover:text-ink",
               key: preset.id,
               onClick: () => choosePreset(preset),
               type: "button",
@@ -170,7 +170,7 @@ export function PresetPicker({ current, presets, onApply, disabled = false }: Pr
           {
             "aria-labelledby": `${dialogId}-title`,
             className:
-              "mt-2 w-full rounded-2xl border border-white/10 bg-surface-900 p-4 text-white shadow-2xl shadow-black/50",
+              "mt-2 w-full rounded-2xl border border-line bg-white p-4 text-ink shadow-2xl shadow-black/10",
             id: dialogId,
             onKeyDown: onDialogKeyDown,
             ref: dialogRef,
@@ -186,7 +186,7 @@ export function PresetPicker({ current, presets, onApply, disabled = false }: Pr
               {
                 "aria-label": "Close preset picker",
                 className:
-                  "upload-control-focus rounded-lg px-2 py-1 text-sm text-zinc-300 transition hover:bg-white/10 hover:text-white",
+                  "upload-control-focus rounded-lg px-2 py-1 text-sm text-muted transition hover:bg-soft hover:text-ink",
                 onClick: () => close(),
                 type: "button",
               },
@@ -200,7 +200,7 @@ export function PresetPicker({ current, presets, onApply, disabled = false }: Pr
                 createPresetSection("Saved presets", savedPresets),
                 createPresetSection("Previous tracks", trackPresets),
               )
-            : createElement("p", { className: "text-sm text-zinc-400" }, "No presets available"),
+            : createElement("p", { className: "text-sm text-muted" }, "No presets available"),
         )
       : null;
 
@@ -215,7 +215,7 @@ export function PresetPicker({ current, presets, onApply, disabled = false }: Pr
             {
               "aria-labelledby": `${dialogId}-title`,
               className:
-                "mt-2 w-full rounded-2xl border border-white/10 bg-surface-900 p-4 text-white shadow-2xl shadow-black/50",
+                "mt-2 w-full rounded-2xl border border-line bg-white p-4 text-ink shadow-2xl shadow-black/10",
               id: dialogId,
               onKeyDown: onDialogKeyDown,
               ref: dialogRef,
@@ -229,7 +229,7 @@ export function PresetPicker({ current, presets, onApply, disabled = false }: Pr
             ),
             createElement(
               "p",
-              { className: "mt-2 text-sm text-zinc-300" },
+              { className: "mt-2 text-sm text-muted" },
               "This preset will replace the following values:",
             ),
             createElement(
@@ -239,13 +239,13 @@ export function PresetPicker({ current, presets, onApply, disabled = false }: Pr
                 createElement(
                   "li",
                   { className: "rounded-lg bg-black/20 px-3 py-2 text-sm", key: field },
-                  createElement("span", { className: "font-medium text-white" }, fieldLabels[field]),
-                  createElement("span", { className: "mx-2 text-zinc-500", "aria-hidden": true }, "→"),
+                  createElement("span", { className: "font-medium text-ink" }, fieldLabels[field]),
+                  createElement("span", { className: "mx-2 text-faint", "aria-hidden": true }, "→"),
                   createElement("span", { className: "sr-only" }, "Current value: "),
-                  createElement("span", { className: "text-zinc-300" }, formatValue(current[field])),
-                  createElement("span", { className: "mx-2 text-zinc-500", "aria-hidden": true }, "→"),
+                  createElement("span", { className: "text-muted" }, formatValue(current[field])),
+                  createElement("span", { className: "mx-2 text-faint", "aria-hidden": true }, "→"),
                   createElement("span", { className: "sr-only" }, "Preset value: "),
-                  createElement("span", { className: "text-zinc-100" }, formatValue(patch[field])),
+                  createElement("span", { className: "text-ink" }, formatValue(patch[field])),
                 ),
               ),
             ),
@@ -256,7 +256,7 @@ export function PresetPicker({ current, presets, onApply, disabled = false }: Pr
                 "button",
                 {
                   className:
-                    "upload-control-focus rounded-lg border border-white/15 px-3 py-2 text-sm text-zinc-200 transition hover:bg-white/10 hover:text-white",
+                    "upload-control-focus rounded-lg border border-line px-3 py-2 text-sm text-ink transition hover:bg-soft hover:text-ink",
                   onClick: () => close(),
                   type: "button",
                 },
@@ -287,7 +287,7 @@ export function PresetPicker({ current, presets, onApply, disabled = false }: Pr
         "aria-expanded": isOpen,
         "aria-haspopup": "dialog",
         className:
-          "upload-control-focus rounded-lg border border-white/15 bg-surface-900 px-3 py-2 text-sm font-medium text-zinc-100 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50",
+          "upload-control-focus rounded-lg border border-line bg-white px-3 py-2 text-sm font-medium text-ink transition hover:bg-soft disabled:cursor-not-allowed disabled:opacity-50",
         disabled,
         onClick: () => {
           if (!disabled) {

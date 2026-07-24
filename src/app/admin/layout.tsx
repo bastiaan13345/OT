@@ -1,66 +1,60 @@
 import Link from "next/link";
-import { Music2, LayoutDashboard, Upload, LogOut, Home, UserCircle } from "lucide-react";
+import {
+  LayoutDashboard,
+  Upload,
+  LogOut,
+  Home,
+  UserCircle,
+  BarChart3,
+  Disc3,
+  Settings2,
+} from "lucide-react";
 
 export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const navigation = [
+    { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
+    { href: "/admin/upload", label: "Upload", icon: Upload },
+    { href: "/admin/releases", label: "Releases", icon: Disc3 },
+    { href: "/admin/analytics", label: "Analytics", icon: BarChart3 },
+    { href: "/admin/profile", label: "Profile", icon: UserCircle },
+    { href: "/admin/settings", label: "Settings", icon: Settings2 },
+  ];
+
   return (
-    <div className="flex min-h-screen pt-16">
-      {/* Sidebar */}
-      <aside className="fixed top-16 bottom-0 left-0 w-64 border-r border-white/5 bg-surface-800 flex flex-col">
-        <div className="p-6 border-b border-white/5">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-600/20">
-              <Music2 className="h-5 w-5 text-brand-400" />
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-white">Artist Panel</p>
-              <p className="text-xs text-zinc-500">OpenTunes</p>
-            </div>
-          </div>
-        </div>
-
-        <nav className="flex-1 p-4 flex flex-col gap-1">
-          {[
-            { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
-            { href: "/admin/upload", label: "Upload Track", icon: Upload },
-            { href: "/admin/profile", label: "Creator Profile", icon: UserCircle },
-          ].map(({ href, label, icon: Icon }) => (
-            <Link
-              key={href}
-              href={href}
-              className="flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-medium text-zinc-400 hover:text-white hover:bg-white/5 transition-colors"
-            >
-              <Icon className="h-4 w-4" />
-              {label}
-            </Link>
-          ))}
-        </nav>
-
-        <div className="p-4 border-t border-white/5 flex flex-col gap-1">
+    <div className="min-h-screen bg-white">
+      <nav className="sticky top-16 z-30 flex items-center gap-1 overflow-x-auto border-b border-line bg-white/95 px-3 py-2 backdrop-blur-xl md:top-0">
+        {navigation.map(({ href, label, icon: Icon }) => (
           <Link
-            href="/"
-            className="flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-medium text-zinc-500 hover:text-zinc-300 hover:bg-white/5 transition-colors"
+            key={href}
+            href={href}
+            className="flex min-w-fit items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium text-muted transition-colors hover:bg-soft hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 sm:text-sm"
           >
-            <Home className="h-4 w-4" />
-            View Site
+            <Icon className="h-4 w-4" />
+            {label}
           </Link>
-          <Link
-            href="/api/auth/signout"
-            className="flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-medium text-zinc-500 hover:text-red-400 hover:bg-red-500/5 transition-colors"
-          >
-            <LogOut className="h-4 w-4" />
-            Sign out
-          </Link>
-        </div>
-      </aside>
+        ))}
+        <span aria-hidden="true" className="mx-1 h-6 w-px flex-none bg-line" />
+        <Link
+          href="/"
+          className="flex min-w-fit items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium text-muted transition-colors hover:bg-soft hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 sm:text-sm"
+        >
+          <Home className="h-4 w-4" />
+          View Site
+        </Link>
+        <Link
+          href="/api/auth/signout"
+          className="flex min-w-fit items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium text-muted transition-colors hover:bg-soft hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 sm:text-sm"
+        >
+          <LogOut className="h-4 w-4" />
+          Sign out
+        </Link>
+      </nav>
 
-      {/* Main content */}
-      <div className="flex-1 ml-64 min-h-full bg-surface-900">
-        {children}
-      </div>
+      <div className="min-h-full bg-white">{children}</div>
     </div>
   );
 }

@@ -7,9 +7,10 @@ import { Button } from "@/components/ui/Button";
 
 interface CommentFormProps {
   trackId: string;
+  timestampSeconds?: number;
 }
 
-export function CommentForm({ trackId }: CommentFormProps) {
+export function CommentForm({ trackId, timestampSeconds }: CommentFormProps) {
   const formRef = useRef<HTMLFormElement>(null);
 
   return (
@@ -21,11 +22,12 @@ export function CommentForm({ trackId }: CommentFormProps) {
       }}
       className="mt-4 flex flex-col gap-3"
     >
+      {timestampSeconds !== undefined && <input type="hidden" name="timestampSeconds" value={timestampSeconds} />}
       <textarea
         name="body"
         rows={3}
         placeholder="Join the conversation..."
-        className="w-full resize-none rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-zinc-500 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+        className="w-full resize-none rounded-lg border border-line bg-white px-4 py-3 text-sm text-ink placeholder:text-faint focus:border-ink focus:outline-none focus:ring-2 focus:ring-ink/15"
         required
       />
       <Button type="submit" size="sm" className="self-start">

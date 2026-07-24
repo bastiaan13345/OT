@@ -200,7 +200,7 @@ export function DatePicker({ label, name, value, onChange, disabled = false }: D
         {
           "aria-labelledby": `${dialogId}-label`,
           className:
-            "upload-calendar-popover absolute z-50 mt-2 w-[20rem] rounded-2xl border border-white/10 bg-surface-900 p-4 text-white shadow-2xl shadow-black/50",
+            "upload-calendar-popover absolute z-50 mt-2 w-[20rem] rounded-2xl border border-line bg-white p-4 text-ink shadow-2xl shadow-black/10",
           id: dialogId,
           onKeyDown: (event: KeyboardEvent<HTMLDivElement>) => {
             if (event.key === "Escape") {
@@ -218,7 +218,7 @@ export function DatePicker({ label, name, value, onChange, disabled = false }: D
             {
               "aria-label": "Previous month",
               className:
-                "upload-control-focus flex h-9 w-9 items-center justify-center rounded-lg text-zinc-300 transition hover:bg-white/10 hover:text-white",
+                "upload-control-focus flex h-9 w-9 items-center justify-center rounded-lg text-muted transition hover:bg-soft hover:text-ink",
               onClick: () => changeVisibleMonth(-1),
               disabled,
               type: "button",
@@ -235,7 +235,7 @@ export function DatePicker({ label, name, value, onChange, disabled = false }: D
             {
               "aria-label": "Next month",
               className:
-                "upload-control-focus flex h-9 w-9 items-center justify-center rounded-lg text-zinc-300 transition hover:bg-white/10 hover:text-white",
+                "upload-control-focus flex h-9 w-9 items-center justify-center rounded-lg text-muted transition hover:bg-soft hover:text-ink",
               onClick: () => changeVisibleMonth(1),
               disabled,
               type: "button",
@@ -253,7 +253,7 @@ export function DatePicker({ label, name, value, onChange, disabled = false }: D
               createElement(
                 "div",
                 {
-                  className: "pb-1 text-center text-xs font-medium uppercase tracking-wide text-zinc-400",
+                  className: "pb-1 text-center text-xs font-medium uppercase tracking-wide text-muted",
                   key: weekday,
                   role: "columnheader",
                 },
@@ -301,8 +301,8 @@ export function DatePicker({ label, name, value, onChange, disabled = false }: D
                         "upload-control-focus h-9 w-full rounded-lg text-sm transition",
                         isSelected
                           ? "bg-brand-600 font-semibold text-white shadow-lg shadow-brand-600/20"
-                          : "text-zinc-200 hover:bg-white/10",
-                        day.isCurrentMonth ? "" : "text-zinc-400 hover:text-zinc-300",
+                          : "text-ink hover:bg-soft",
+                        day.isCurrentMonth ? "" : "text-muted hover:text-muted",
                       ]
                         .filter(Boolean)
                         .join(" "),
@@ -333,7 +333,7 @@ export function DatePicker({ label, name, value, onChange, disabled = false }: D
     "div",
     { className: "relative", ref: rootRef },
     createElement("input", { disabled, name, type: "hidden", value: normalizedValue }),
-    createElement("span", { className: "mb-2 block text-sm font-medium text-zinc-200", id: labelId }, label),
+    createElement("span", { className: "mb-2 block text-sm font-medium text-ink", id: labelId }, label),
     createElement(
       "div",
       { className: "flex items-center gap-2" },
@@ -345,14 +345,14 @@ export function DatePicker({ label, name, value, onChange, disabled = false }: D
           "aria-haspopup": "dialog",
           "aria-label": `${label}: ${displayValue}`,
           className:
-            "upload-control-focus flex min-h-11 flex-1 items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-3 text-left text-sm text-white transition hover:border-white/20 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50",
+            "upload-control-focus flex min-h-11 flex-1 items-center gap-3 rounded-xl border border-line bg-soft px-3 text-left text-sm text-ink transition hover:border-line hover:bg-soft disabled:cursor-not-allowed disabled:opacity-50",
           disabled,
           onClick: () => (isOpen ? closeCalendar(true) : openCalendar()),
           ref: triggerRef,
           type: "button",
         },
         createElement(CalendarDays, { "aria-hidden": true, className: "h-4 w-4 shrink-0 text-brand-300" }),
-        createElement("span", { className: normalizedValue ? "text-white" : "text-zinc-400" }, displayValue),
+        createElement("span", { className: normalizedValue ? "text-ink" : "text-muted" }, displayValue),
       ),
       normalizedValue
         ? createElement(
@@ -360,7 +360,7 @@ export function DatePicker({ label, name, value, onChange, disabled = false }: D
             {
               "aria-label": "Clear date",
               className:
-                "upload-control-focus flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-zinc-400 transition hover:border-white/20 hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-50",
+                "upload-control-focus flex h-11 w-11 items-center justify-center rounded-xl border border-line bg-soft text-muted transition hover:border-line hover:bg-soft hover:text-ink disabled:cursor-not-allowed disabled:opacity-50",
               disabled,
               onClick: () => onChange(""),
               type: "button",

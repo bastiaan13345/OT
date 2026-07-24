@@ -64,7 +64,7 @@ describe("DatePicker", () => {
     const grid = screen.getByRole("grid", { name: "July 2026" });
 
     expect(dialog).toHaveClass(
-      "bg-surface-900",
+      "bg-white",
     );
     expect(trigger).toHaveAttribute("aria-controls", dialog.id);
     expect(dialog).toHaveAttribute("aria-labelledby", `${dialog.id}-label`);
@@ -74,8 +74,8 @@ describe("DatePicker", () => {
         .getAllByRole("row")
         .filter((row) => within(row).queryAllByRole("gridcell").length > 0),
     ).toHaveLength(6);
-    expect(screen.getByRole("columnheader", { name: "Mon" })).toHaveClass("text-xs", "text-zinc-400");
-    expect(screen.getByRole("button", { name: "Monday, 29 June 2026" })).toHaveClass("text-zinc-400");
+    expect(screen.getByRole("columnheader", { name: "Mon" })).toHaveClass("text-xs", "text-muted");
+    expect(screen.getByRole("button", { name: "Monday, 29 June 2026" })).toHaveClass("text-muted");
 
     await user.click(screen.getByRole("button", { name: "Next month" }));
     expect(screen.getByRole("button", { name: "Sunday, 23 August 2026" })).toHaveAttribute(

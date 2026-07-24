@@ -1,136 +1,30 @@
-"use client";
-
-import { useState } from "react";
 import Link from "next/link";
-import { Play, TrendingUp, Sparkles, ArrowRight } from "lucide-react";
+import { ArrowRight, Clock3, Library, ListMusic, Radio, Sparkles } from "lucide-react";
 import { TrackCard } from "@/components/TrackCard";
-import { AudioPlayer } from "@/components/player/AudioPlayer";
+import { AlbumCarousel } from "@/components/home/AlbumCarousel";
 import type { Track } from "@prisma/client";
 
-interface HomePageProps {
-  featuredTracks: Track[];
-  recentTracks: Track[];
-  stats: {
-    tracks: number;
-    plays: number;
-    artists: number;
-  };
-}
+interface HomePageProps { featuredTracks: Track[]; recentTracks: Track[]; stats: { tracks: number; plays: number; artists: number } }
 
 export default function HomePage({ featuredTracks, recentTracks, stats }: HomePageProps) {
-  const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
+  const carouselTracks = [...featuredTracks, ...recentTracks]
+    .filter((track, index, tracks) => tracks.findIndex((item) => item.id === track.id) === index)
+    .slice(0, 7);
+  return <div className="mx-auto max-w-[1500px] px-5 py-8 sm:px-8 lg:px-10">
+    <header className="mb-12 flex items-end justify-between border-b border-line pb-5">
+      <div><p className="mb-1 text-sm text-muted">Listen now</p><h1 className="text-4xl font-semibold tracking-[-0.045em] text-ink sm:text-6xl">Home</h1></div>
+      <Link href="/browse" className="hidden items-center gap-2 rounded-full border border-line bg-white px-4 py-2 text-sm text-ink transition hover:border-ink hover:bg-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 sm:flex"><Sparkles className="h-4 w-4" /> Discover something new</Link>
+    </header>
 
-  return (
-    <>
-      <div className="mx-auto max-w-7xl px-6">
-        {/* Hero Section */}
-        <section className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="inline-flex items-center gap-2 rounded-full border border-brand-500/20 bg-brand-500/10 px-4 py-1.5 text-sm text-brand-300 mb-6">
-            <Sparkles className="h-3.5 w-3.5" />
-            <span>Modern music platform</span>
-          </div>
+    <AlbumCarousel tracks={carouselTracks} />
 
-          <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-white mb-6 animate-fade-in">
-            Share Your Sound
-            <br />
-            <span className="bg-gradient-to-r from-brand-400 to-brand-600 bg-clip-text text-transparent">
-              With The World
-            </span>
-          </h1>
+    <section className="mt-14"><div className="mb-5 flex items-center justify-between"><h2 className="flex items-center gap-2 text-2xl font-semibold tracking-tight text-ink sm:text-3xl">Recently Added <ArrowRight className="h-6 w-6 text-faint" /></h2><Link href="/browse?sort=recent" className="rounded-sm text-sm text-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink">See All</Link></div><div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">{recentTracks.map(track => <TrackCard key={track.id} track={track} queue={recentTracks} sourceLabel="Recently Added" />)}</div></section>
 
-          <p className="text-lg md:text-xl text-zinc-400 max-w-2xl mb-10 animate-slide-up">
-            Upload, manage, and share your music with a modern platform designed for independent artists and producers.
-          </p>
-
-          <div className="flex flex-col sm:flex-row gap-4 animate-slide-up">
-            <Link
-              href="/browse"
-              className="inline-flex items-center justify-center gap-2 rounded-lg bg-brand-600 px-8 py-4 text-base font-semibold text-white shadow-lg shadow-brand-600/30 hover:bg-brand-500 transition-all hover:scale-105"
-            >
-              <Play className="h-5 w-5 fill-current" />
-              Explore Music
-            </Link>
-            <Link
-              href="/signup"
-              className="inline-flex items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/5 px-8 py-4 text-base font-semibold text-white hover:bg-white/10 transition-colors"
-            >
-              Upload Your Track
-              <ArrowRight className="h-5 w-5" />
-            </Link>
-          </div>
-        </section>
-
-        {/* Featured Tracks */}
-        {featuredTracks.length > 0 && (
-          <section className="py-16">
-            <div className="flex items-center justify-between mb-8">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-600/10">
-                  <TrendingUp className="h-5 w-5 text-brand-400" />
-                </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-white">Featured Tracks</h2>
-                  <p className="text-sm text-zinc-500">Handpicked by our curators</p>
-                </div>
-              </div>
-              <Link
-                href="/browse"
-                className="text-sm font-medium text-brand-400 hover:text-brand-300 transition-colors"
-              >
-                View all
-              </Link>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {featuredTracks.map((track) => (
-                <TrackCard
-                  key={track.id}
-                  track={track}
-                  onPlay={setCurrentTrack}
-                />
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* Recent Uploads */}
-        {recentTracks.length > 0 && (
-          <section className="py-16">
-            <div className="mb-8">
-              <h2 className="text-2xl font-bold text-white mb-2">Recent Uploads</h2>
-              <p className="text-sm text-zinc-500">Fresh tracks from our community</p>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {recentTracks.map((track) => (
-                <TrackCard
-                  key={track.id}
-                  track={track}
-                  onPlay={setCurrentTrack}
-                />
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* Stats */}
-        <section className="py-16 border-y border-white/5">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              { label: "Tracks Uploaded", value: String(stats.tracks) },
-              { label: "Total Plays", value: String(stats.plays) },
-              { label: "Active Artists", value: String(stats.artists) },
-            ].map((stat) => (
-              <div key={stat.label} className="text-center">
-                <div className="text-4xl font-bold text-white mb-2">{stat.value}</div>
-                <div className="text-sm text-zinc-500">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        </section>
-      </div>
-
-      <AudioPlayer track={currentTrack} />
-    </>
-  );
+    <section className="mt-14"><h2 className="mb-5 text-2xl font-semibold tracking-tight text-ink">Your music, one place</h2><div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{[
+      { href: "/library", icon: Library, title: "Your Library", copy: "Liked songs and saved music" },
+      { href: "/history", icon: Clock3, title: "Recently Played", copy: "Continue where you stopped" },
+      { href: "/library", icon: ListMusic, title: "All Playlists", copy: "Collections for every mood" },
+      { href: "/feed", icon: Radio, title: "Radio & Feed", copy: `${stats.artists} artists sharing new music` },
+    ].map(({ href, icon: Icon, title, copy }) => <Link key={title} href={href} className="group flex items-center gap-4 rounded-2xl border border-line bg-white p-4 transition hover:border-ink hover:bg-panel focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2"><div className="flex h-11 w-11 items-center justify-center rounded-xl bg-soft text-ink"><Icon className="h-5 w-5" /></div><div><p className="text-sm font-semibold text-ink">{title}</p><p className="mt-0.5 text-xs text-muted">{copy}</p></div></Link>)}</div></section>
+  </div>;
 }

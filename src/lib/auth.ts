@@ -14,8 +14,12 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
 
+        // Normalize email the same way registerCreator stores it
+        // (trim + lowercase) so a mixed-case login still matches the account.
+        const email = credentials.email.trim().toLowerCase();
+
         const user = await prisma.user.findUnique({
-          where: { email: credentials.email },
+          where: { email },
         });
 
         if (user) {
@@ -34,7 +38,7 @@ export const authOptions: NextAuthOptions = {
         }
 
         const admin = await prisma.admin.findUnique({
-          where: { email: credentials.email },
+          where: { email },
         });
 
         if (!admin) return null;
@@ -57,7 +61,7 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
-        token.role = user.role || "CREATOR";
+        token.role = user.role || "LISTENER";
       }
       return token;
     },

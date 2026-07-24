@@ -19,10 +19,10 @@ export function LikeButton({ trackId, liked, count }: LikeButtonProps) {
       disabled={pending}
       onClick={() => startTransition(() => toggleLike(trackId))}
       className={cn(
-        "inline-flex items-center gap-2 rounded-xl border px-4 py-3 text-sm font-semibold transition-colors disabled:opacity-50",
+        "inline-flex items-center gap-2 rounded-xl border px-4 py-3 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 disabled:opacity-50",
         liked
-          ? "border-red-500/30 bg-red-500/10 text-red-300 hover:bg-red-500/15"
-          : "border-white/10 bg-white/5 text-zinc-300 hover:bg-white/10 hover:text-white"
+          ? "border-ink bg-ink text-white hover:bg-black"
+          : "border-line bg-white text-ink hover:bg-soft"
       )}
     >
       <Heart className={cn("h-4 w-4", liked && "fill-current")} />

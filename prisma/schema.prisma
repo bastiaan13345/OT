@@ -11,32 +11,37 @@ datasource db {
 }
 
 model Track {
-  id            String          @id @default(cuid())
-  creationKey String? @unique
-  title         String
-  artist        String
-  genre         String?
-  description   String?
-  audioUrl      String
-  coverUrl      String?
-  album         String?
-  tags          String?
-  license       String?
-  price         Float?
-  releaseDate   DateTime?
-  allowDownload Boolean         @default(false)
-  duration      Int? // in seconds
-  plays         Int             @default(0)
-  downloads     Int             @default(0)
-  featured      Boolean         @default(false)
-  published     Boolean         @default(true)
-  creatorId     String?
-  creator       User?           @relation(fields: [creatorId], references: [id])
-  likes         Like[]
-  comments      Comment[]
-  playlistItems PlaylistTrack[]
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
+  id             String          @id @default(cuid())
+  creationKey    String?         @unique
+  title          String
+  artist         String
+  genre          String?
+  description    String?
+  audioUrl       String
+  coverUrl       String?
+  album          String?
+  tags           String?
+  license        String?
+  price          Float?
+  releaseDate    DateTime?
+  allowDownload  Boolean         @default(false)
+  duration       Int? // in seconds
+  plays          Int             @default(0)
+  downloads      Int             @default(0)
+  featured       Boolean         @default(false)
+  published      Boolean         @default(true)
+  creatorId      String?
+  creator        User?           @relation(fields: [creatorId], references: [id])
+  likes          Like[]
+  comments       Comment[]
+  playlistItems  PlaylistTrack[]
+  playbackEvents PlaybackEvent[]
+  audioVersions  AudioVersion[]
+  audioAnalyses  AudioAnalysis[]
+  releaseTracks  ReleaseTrack[]
+  processingJobs ProcessingJob[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
 }
 
 model Admin {
@@ -47,25 +52,28 @@ model Admin {
 }
 
 model User {
-  id        String     @id @default(cuid())
-  name      String
-  email     String     @unique
-  password  String
-  role      String     @default("CREATOR")
-  bio       String?
-  location  String?
-  website   String?
-  avatarUrl String?
-  uploadConcurrency Int @default(2)
-  tracks    Track[]
-  likes     Like[]
-  comments  Comment[]
-  playlists Playlist[]
-  following Follow[]   @relation("following")
-  followers Follow[]   @relation("followers")
-  uploadPresets UploadPreset[]
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  id                String          @id @default(cuid())
+  name              String
+  email             String          @unique
+  password          String
+  role              String          @default("LISTENER")
+  bio               String?
+  location          String?
+  website           String?
+  avatarUrl         String?
+  uploadConcurrency Int             @default(2)
+  tracks            Track[]
+  likes             Like[]
+  comments          Comment[]
+  playlists         Playlist[]
+  following         Follow[]        @relation("following")
+  followers         Follow[]        @relation("followers")
+  playbackEvents    PlaybackEvent[]
+  releases          Release[]
+  processingJobs    ProcessingJob[]
+  uploadPresets     UploadPreset[]
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
 }
 
 model Like {
@@ -80,13 +88,14 @@ model Like {
 }
 
 model Comment {
-  id        String   @id @default(cuid())
-  body      String
-  userId    String
-  trackId   String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  track     Track    @relation(fields: [trackId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
+  id               String   @id @default(cuid())
+  body             String
+  timestampSeconds Int?
+  userId           String
+  trackId          String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  track            Track    @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  createdAt        DateTime @default(now())
 }
 
 model Follow {
@@ -116,11 +125,143 @@ model PlaylistTrack {
   id         String   @id @default(cuid())
   playlistId String
   trackId    String
+  position   Int      @default(0)
   playlist   Playlist @relation(fields: [playlistId], references: [id], onDelete: Cascade)
   track      Track    @relation(fields: [trackId], references: [id], onDelete: Cascade)
   createdAt  DateTime @default(now())
 
   @@unique([playlistId, trackId])
+}
+
+// Idempotent playback tracking. A single logical play session is identified by
+// `playbackId` (generated client-side). Repeated POSTs upsert progress; a play
+// is counted toward Track.plays exactly once via `countedAt`.
+model PlaybackEvent {
+  id            String    @id @default(cuid())
+  playbackId    String    @unique
+  trackId       String
+  track         Track     @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  userId        String?
+  user          User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  source        String? // e.g. "web", "browse", "track-page", "playlist", "embed"
+  playedSeconds Float     @default(0)
+  completed     Boolean   @default(false)
+  countedAt     DateTime? // set once when the 10s qualification is first met
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([trackId])
+  @@index([userId])
+}
+
+// A Release groups one or more tracks (single / EP / album) owned by a creator.
+model Release {
+  id          String         @id @default(cuid())
+  creationKey String?        @unique
+  title       String
+  description String?
+  coverUrl    String?
+  type        String         @default("single") // single | ep | album
+  releaseDate DateTime?
+  published   Boolean        @default(true)
+  creatorId   String
+  creator     User           @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  tracks      ReleaseTrack[]
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@index([creatorId])
+}
+
+// Ordered membership of a Track within a Release.
+model ReleaseTrack {
+  id        String   @id @default(cuid())
+  releaseId String
+  trackId   String
+  position  Int      @default(0)
+  release   Release  @relation(fields: [releaseId], references: [id], onDelete: Cascade)
+  track     Track    @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([releaseId, trackId])
+  @@index([releaseId])
+}
+
+// Immutable audio renditions of a track. The "original" version is created at
+// upload time and is never mutated. "enhanced" versions are produced by the
+// local signal processor and are also immutable once written. Exactly one
+// version per track is `active` at a time (mirrored onto Track.audioUrl).
+model AudioVersion {
+  id        String          @id @default(cuid())
+  trackId   String
+  track     Track           @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  kind      String          @default("original") // original | enhanced
+  preset    String? // balanced | warm | bright (enhanced only)
+  label     String?
+  url       String
+  format    String? // container/codec label, e.g. "mp3"
+  bitrate   Int? // kbps
+  sizeBytes Int?
+  duration  Float? // seconds
+  active    Boolean         @default(false)
+  analyses  AudioAnalysis[]
+  jobs      ProcessingJob[]
+  createdAt DateTime        @default(now())
+
+  @@index([trackId])
+}
+
+// Deterministic local signal analysis of an audio file. Provider-ready fields
+// (`provider`, `providerData`) are exposed for optional external AI, but the
+// default implementation is fully local (ffprobe + ffmpeg measurements).
+model AudioAnalysis {
+  id             String        @id @default(cuid())
+  trackId        String
+  track          Track         @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  audioVersionId String?
+  audioVersion   AudioVersion? @relation(fields: [audioVersionId], references: [id], onDelete: SetNull)
+  durationSec    Float?
+  codec          String?
+  sampleRate     Int?
+  channels       Int?
+  bitrate        Int? // kbps
+  loudnessLufs   Float? // integrated loudness (LUFS)
+  loudnessRange  Float? // LRA
+  truePeakDb     Float? // dBTP
+  peakDb         Float? // sample peak (dBFS)
+  clippingPct    Float? // % samples at/near full scale
+  silencePct     Float? // % of duration below silence threshold
+  suggestions    String? // JSON array of { id, severity, message, fix }
+  provider       String        @default("local") // local | (external provider name)
+  providerData   String? // JSON blob from an optional external provider
+  createdAt      DateTime      @default(now())
+
+  @@index([trackId])
+  @@index([audioVersionId])
+}
+
+// Tracks async/foreground processing work (analysis, enhancement).
+model ProcessingJob {
+  id             String        @id @default(cuid())
+  trackId        String
+  track          Track         @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  audioVersionId String?
+  audioVersion   AudioVersion? @relation(fields: [audioVersionId], references: [id], onDelete: SetNull)
+  userId         String?
+  user           User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  type           String // analyze | enhance
+  status         String        @default("pending") // pending | running | completed | failed
+  preset         String?
+  progress       Int           @default(0)
+  result         String? // JSON summary of the outcome
+  error          String?
+  startedAt      DateTime?
+  finishedAt     DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@index([trackId])
+  @@index([status])
 }
 
 model UploadPreset {

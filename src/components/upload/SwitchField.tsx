@@ -29,7 +29,7 @@ export function SwitchField({
       type: "hidden",
       value: checked ? "on" : "off",
     }),
-    createElement("span", { className: "text-sm font-medium text-zinc-200", id: labelId }, label),
+    createElement("span", { className: "text-sm font-medium text-ink", id: labelId }, label),
     createElement(
       "button",
       {
@@ -39,7 +39,7 @@ export function SwitchField({
           "upload-control-focus relative inline-flex h-7 w-12 shrink-0 items-center rounded-full border p-0.5 transition-colors disabled:cursor-not-allowed disabled:opacity-50",
           checked
             ? "border-brand-400/70 bg-brand-600 shadow-lg shadow-brand-600/20"
-            : "border-white/15 bg-white/10 hover:bg-white/15",
+            : "border-line bg-soft hover:bg-soft",
         ].join(" "),
         disabled,
         onClick: () => onChange(!checked),

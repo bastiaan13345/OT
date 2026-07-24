@@ -1,207 +1,89 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX } from "lucide-react";
-import { cn, formatDuration } from "@/lib/utils";
+import { useState, type FormEvent } from "react";
+import { AlertCircle, ListMusic, Loader2, Maximize2, MessageCircle, Minimize2, Pause, Play, Send, SkipBack, SkipForward, Volume2, VolumeX, X } from "lucide-react";
 import type { Track } from "@prisma/client";
+import { addComment } from "@/lib/actions";
+import { cn, formatDuration } from "@/lib/utils";
+import { usePlayer } from "@/components/providers/PlayerProvider";
 
-interface AudioPlayerProps {
-  track: Track | null;
-  onClose?: () => void;
+function IconButton({ label, active, onClick, children, className }: { label: string; active?: boolean; onClick?: () => void; children: React.ReactNode; className?: string }) {
+  return <button type="button" onClick={onClick} aria-label={label} title={label} className={cn("flex h-9 w-9 items-center justify-center rounded-full text-muted transition hover:bg-soft hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink", active && "bg-soft text-ink", className)}>{children}</button>;
 }
 
-export function AudioPlayer({ track, onClose }: AudioPlayerProps) {
-  const audioRef = useRef<HTMLAudioElement>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [volume, setVolume] = useState(1);
-  const [isMuted, setIsMuted] = useState(false);
+function Cover({ track, className }: { track: Track; className?: string }) {
+  return <div className={cn("relative shrink-0 overflow-hidden rounded-xl bg-soft", className)}>{track.coverUrl ? <Image src={track.coverUrl} alt="" fill className="object-cover" sizes="80px" /> : <div className="flex h-full items-center justify-center text-faint">♫</div>}</div>;
+}
 
-  useEffect(() => {
-    if (!track || !audioRef.current) return;
-
-    audioRef.current.src = track.audioUrl;
-    audioRef.current.load();
-    audioRef.current.play();
-    setIsPlaying(true);
-  }, [track]);
-
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    const updateTime = () => setCurrentTime(audio.currentTime);
-    const updateDuration = () => setDuration(audio.duration);
-    const handleEnded = () => setIsPlaying(false);
-
-    audio.addEventListener("timeupdate", updateTime);
-    audio.addEventListener("loadedmetadata", updateDuration);
-    audio.addEventListener("ended", handleEnded);
-
-    return () => {
-      audio.removeEventListener("timeupdate", updateTime);
-      audio.removeEventListener("loadedmetadata", updateDuration);
-      audio.removeEventListener("ended", handleEnded);
-    };
-  }, []);
-
-  const togglePlay = () => {
-    if (!audioRef.current) return;
-    if (isPlaying) {
-      audioRef.current.pause();
-    } else {
-      audioRef.current.play();
-    }
-    setIsPlaying(!isPlaying);
-  };
-
-  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const time = parseFloat(e.target.value);
-    setCurrentTime(time);
-    if (audioRef.current) audioRef.current.currentTime = time;
-  };
-
-  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const vol = parseFloat(e.target.value);
-    setVolume(vol);
-    if (audioRef.current) audioRef.current.volume = vol;
-    setIsMuted(vol === 0);
-  };
-
-  const toggleMute = () => {
-    if (!audioRef.current) return;
-    if (isMuted) {
-      audioRef.current.volume = volume;
-      setIsMuted(false);
-    } else {
-      audioRef.current.volume = 0;
-      setIsMuted(true);
-    }
-  };
-
+export function PlayerBar() {
+  const player = usePlayer();
+  const [commentOpen, setCommentOpen] = useState(false);
+  const [comment, setComment] = useState("");
+  const [commentState, setCommentState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const track = player.currentTrack;
   if (!track) return null;
+  const progress = player.duration ? (player.currentTime / player.duration) * 100 : 0;
 
-  return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/10 bg-surface-900/95 backdrop-blur-xl">
-      <audio ref={audioRef} />
+  async function submitComment(event: FormEvent) {
+    event.preventDefault();
+    if (!track || !comment.trim()) return;
+    setCommentState("saving");
+    const data = new FormData();
+    data.set("body", comment.trim());
+    data.set("timestampSeconds", String(Math.floor(player.currentTime)));
+    try {
+      await addComment(track.id, data);
+      setComment("");
+      setCommentState("saved");
+      window.setTimeout(() => setCommentState("idle"), 1800);
+    } catch {
+      setCommentState("error");
+    }
+  }
 
-      <div className="mx-auto max-w-7xl px-6 py-4">
-        <div className="flex items-center gap-4">
-          {/* Track info */}
-          <div className="flex min-w-0 flex-1 items-center gap-3">
-            <div className="relative h-14 w-14 flex-shrink-0 overflow-hidden rounded-lg bg-surface-700">
-              {track.coverUrl ? (
-                <Image
-                  src={track.coverUrl}
-                  alt={track.title}
-                  fill
-                  className="object-cover"
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center">
-                  <div className="flex gap-0.5">
-                    {[...Array(4)].map((_, i) => (
-                      <div
-                        key={i}
-                        className="w-1 animate-pulse-bar rounded-full bg-brand-500"
-                        style={{
-                          height: "16px",
-                          animationDelay: `${i * 0.15}s`,
-                        }}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="min-w-0">
-              <p className="truncate font-semibold text-white">{track.title}</p>
-              <p className="truncate text-sm text-zinc-400">{track.artist}</p>
-            </div>
+  return <>
+    <div className="fixed inset-x-3 bottom-3 z-50 sm:left-1/2 sm:right-auto sm:w-[min(720px,calc(100vw-2rem))] sm:-translate-x-1/2">
+      {player.error && <div className="mb-2 flex items-center gap-2 rounded-2xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-800 shadow-lg shadow-black/10"><AlertCircle className="h-4 w-4" />{player.error}</div>}
+      {commentOpen && <form onSubmit={submitComment} className="mb-2 flex items-center gap-2 rounded-2xl border border-line bg-white/95 p-2 shadow-2xl shadow-black/10 backdrop-blur-2xl">
+        <span className="rounded-full bg-soft px-2.5 py-1 text-xs font-semibold tabular-nums text-ink">@ {formatDuration(Math.floor(player.currentTime))}</span>
+        <input autoFocus value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Comment on this moment…" maxLength={500} className="min-w-0 flex-1 bg-transparent px-2 text-sm text-ink outline-none placeholder:text-faint focus-visible:ring-2 focus-visible:ring-ink/15" />
+        {commentState === "saved" && <span className="rounded bg-emerald-50 px-1.5 py-0.5 text-xs text-emerald-800">Added</span>}
+        {commentState === "error" && <span className="rounded bg-red-50 px-1.5 py-0.5 text-xs text-red-800">Sign in to comment</span>}
+        <button type="submit" aria-label="Post timestamped comment" disabled={commentState === "saving"} className="flex h-9 w-9 items-center justify-center rounded-full bg-ink text-white transition hover:bg-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 disabled:opacity-50">{commentState === "saving" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}</button>
+      </form>}
+      <div className="overflow-hidden rounded-[1.35rem] border border-line bg-white/95 shadow-2xl shadow-black/10 backdrop-blur-2xl">
+        <div className="h-1 bg-soft"><div className="h-full bg-ink transition-[width]" style={{ width: `${progress}%` }} /></div>
+        <div className="flex items-center gap-2 p-2 sm:gap-3">
+          <Cover track={track} className="h-12 w-12 sm:h-14 sm:w-14" />
+          <div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-ink">{track.title}</p><p className="truncate text-xs text-muted">{track.artist} · {formatDuration(Math.floor(player.currentTime))}</p></div>
+          <div className="flex items-center">
+            <IconButton label="Previous track" onClick={player.previousTrack} className="hidden sm:flex"><SkipBack className="h-4 w-4 fill-current" /></IconButton>
+            <button type="button" onClick={player.togglePlay} aria-label={player.isPlaying ? "Pause" : "Play"} className="flex h-11 w-11 items-center justify-center rounded-full bg-ink text-white transition hover:scale-105 hover:bg-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2">{player.isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : player.isPlaying ? <Pause className="h-5 w-5 fill-current" /> : <Play className="ml-0.5 h-5 w-5 fill-current" />}</button>
+            <IconButton label="Next track" onClick={player.nextTrack}><SkipForward className="h-4 w-4 fill-current" /></IconButton>
           </div>
-
-          {/* Controls */}
-          <div className="flex flex-col items-center gap-2 flex-1 max-w-2xl">
-            <div className="flex items-center gap-2">
-              <button
-                className="flex h-8 w-8 items-center justify-center rounded-full text-zinc-400 hover:text-white transition-colors"
-                aria-label="Previous track"
-              >
-                <SkipBack className="h-4 w-4 fill-current" />
-              </button>
-
-              <button
-                onClick={togglePlay}
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-surface-900 hover:scale-105 transition-transform"
-                aria-label={isPlaying ? "Pause" : "Play"}
-              >
-                {isPlaying ? (
-                  <Pause className="h-5 w-5 fill-current" />
-                ) : (
-                  <Play className="h-5 w-5 fill-current ml-0.5" />
-                )}
-              </button>
-
-              <button
-                className="flex h-8 w-8 items-center justify-center rounded-full text-zinc-400 hover:text-white transition-colors"
-                aria-label="Next track"
-              >
-                <SkipForward className="h-4 w-4 fill-current" />
-              </button>
-            </div>
-
-            {/* Progress bar */}
-            <div className="flex w-full items-center gap-2">
-              <span className="text-xs text-zinc-500 w-10 text-right">
-                {formatDuration(Math.floor(currentTime))}
-              </span>
-              <input
-                type="range"
-                min={0}
-                max={duration || 0}
-                value={currentTime}
-                onChange={handleSeek}
-                className="flex-1 h-1 bg-white/10 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:cursor-pointer hover:[&::-webkit-slider-thumb]:scale-110 [&::-webkit-slider-thumb]:transition-transform"
-                style={{
-                  background: `linear-gradient(to right, rgb(100, 116, 248) ${
-                    (currentTime / (duration || 1)) * 100
-                  }%, rgba(255,255,255,0.1) ${(currentTime / (duration || 1)) * 100}%)`,
-                }}
-              />
-              <span className="text-xs text-zinc-500 w-10">
-                {formatDuration(Math.floor(duration))}
-              </span>
-            </div>
+          <div className="flex items-center">
+            <IconButton label="Comment at current timestamp" active={commentOpen} onClick={() => setCommentOpen((v) => !v)}><MessageCircle className="h-4 w-4" /></IconButton>
+            <IconButton label={player.muted ? "Unmute" : "Mute"} onClick={player.toggleMute} className="hidden sm:flex">{player.muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}</IconButton>
           </div>
-
-          {/* Volume */}
-          <div className="hidden md:flex items-center gap-2 flex-1 justify-end">
-            <button
-              onClick={toggleMute}
-              className="flex h-8 w-8 items-center justify-center rounded-full text-zinc-400 hover:text-white transition-colors"
-              aria-label={isMuted ? "Unmute" : "Mute"}
-            >
-              {isMuted ? (
-                <VolumeX className="h-4 w-4" />
-              ) : (
-                <Volume2 className="h-4 w-4" />
-              )}
-            </button>
-            <input
-              type="range"
-              min={0}
-              max={1}
-              step={0.01}
-              value={isMuted ? 0 : volume}
-              onChange={handleVolumeChange}
-              className="w-24 h-1 bg-white/10 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2.5 [&::-webkit-slider-thumb]:h-2.5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:cursor-pointer"
-            />
-          </div>
+          <IconButton label={player.queueOpen ? "Hide queue window" : "Show queue window"} active={player.queueOpen} onClick={player.queueOpen ? player.closeQueue : player.openQueue}><ListMusic className="h-4 w-4" /></IconButton>
+          <IconButton label="Close player" onClick={player.closePlayer} className="hidden sm:flex"><X className="h-4 w-4" /></IconButton>
         </div>
+        <input type="range" min={0} max={player.duration || 0} step={0.1} value={Math.min(player.currentTime, player.duration || player.currentTime)} onChange={(e) => player.seek(Number(e.target.value))} aria-label="Seek playback" className="absolute inset-x-0 top-0 h-2 w-full cursor-pointer opacity-0 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink" />
       </div>
     </div>
-  );
+    <QueueWindow />
+  </>;
 }
+
+function QueueWindow() {
+  const player = usePlayer();
+  const [expanded, setExpanded] = useState(false);
+  if (!player.queueOpen || !player.currentTrack) return null;
+  return <aside className={cn("fixed z-40 flex flex-col overflow-hidden border border-line bg-white/95 shadow-2xl shadow-black/10 backdrop-blur-2xl transition-all", expanded ? "inset-3 bottom-24 rounded-3xl sm:inset-auto sm:bottom-24 sm:right-5 sm:h-[min(70vh,680px)] sm:w-[420px]" : "bottom-24 right-3 h-[360px] w-[min(360px,calc(100vw-1.5rem))] rounded-2xl sm:right-5") }>
+    <div className="flex items-center justify-between border-b border-line px-4 py-3"><div><h2 className="text-sm font-semibold text-ink">Up Next</h2><p className="text-xs text-muted">{player.queue.length} tracks · {player.sourceLabel}</p></div><div className="flex"><IconButton label={expanded ? "Use mini queue window" : "Expand queue window"} onClick={() => setExpanded(v => !v)}>{expanded ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}</IconButton><IconButton label="Close queue" onClick={player.closeQueue}><X className="h-4 w-4" /></IconButton></div></div>
+    <div className="flex-1 overflow-y-auto p-2">{player.queue.map((track, index) => { const active = track.id === player.currentTrack?.id; return <div key={`${track.id}-${index}`} className={cn("group flex items-center gap-3 rounded-xl p-2", active ? "bg-soft" : "hover:bg-panel")}><button type="button" onClick={() => player.selectQueueTrack(index)} aria-label={`Play ${track.title}`} className={cn("flex h-9 w-9 items-center justify-center rounded-full border border-line text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink", active && "border-ink bg-ink text-white")}>{active && player.isPlaying ? <Pause className="h-4 w-4 fill-current" /> : <Play className="ml-0.5 h-4 w-4 fill-current" />}</button><Cover track={track} className="h-11 w-11" /><div className="min-w-0 flex-1"><p className="truncate text-sm font-medium text-ink">{track.title}</p><p className="truncate text-xs text-muted">{track.artist}</p></div><IconButton label={`Remove ${track.title} from queue`} onClick={() => player.removeFromQueue(track.id)} className="opacity-60 group-hover:opacity-100"><X className="h-4 w-4" /></IconButton></div>})}</div>
+  </aside>;
+}
+
+export function AudioPlayer() { return <PlayerBar />; }

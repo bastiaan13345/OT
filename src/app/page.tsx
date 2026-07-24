@@ -9,19 +9,24 @@ export default async function Page() {
       prisma.track.findMany({
         where: { featured: true, published: true },
         orderBy: { createdAt: "desc" },
-        take: 4,
+        take: 6,
       }),
       prisma.track.findMany({
         where: { published: true },
         orderBy: { createdAt: "desc" },
-        take: 8,
+        take: 10,
       }),
       prisma.track.count({ where: { published: true } }),
       prisma.track.aggregate({
         where: { published: true },
         _sum: { plays: true },
       }),
-      prisma.user.count(),
+      prisma.user.count({
+        where: {
+          role: "CREATOR",
+          tracks: { some: { published: true } },
+        },
+      }),
     ]);
 
   return (

@@ -1,55 +1,95 @@
 "use client";
 
 import Link from "next/link";
-import { Music2, User, Mail, Lock } from "lucide-react";
+import Image from "next/image";
+import { Headphones, Lock, Mail, Mic2, User } from "lucide-react";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
-import { registerCreator } from "@/lib/actions";
+import { registerUser } from "@/lib/actions";
 
 export default function SignupPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center px-6">
+    <div className="flex min-h-screen items-center justify-center bg-canvas px-6">
       <div className="w-full max-w-md">
         <div className="mb-8 flex flex-col items-center text-center">
-          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-600 shadow-xl shadow-brand-600/30">
-            <Music2 className="h-7 w-7 text-white" />
+          <div className="mb-4">
+            <Image src="/Infini.svg" alt="Infini" width={72} height={72} priority />
           </div>
-          <h1 className="text-2xl font-bold text-white">Join OpenTunes</h1>
-          <p className="mt-1 text-sm text-zinc-500">Create a listener and creator account</p>
+          <h1 className="text-2xl font-bold text-ink">Join OpenTunes</h1>
+          <p className="mt-1 text-sm text-muted">Choose how you want to use the platform</p>
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-surface-800 p-8">
-          <form action={registerCreator} className="flex flex-col gap-5">
+        <div className="rounded-2xl border border-line bg-panel p-8">
+          <form action={registerUser} className="flex flex-col gap-5">
+            <fieldset>
+              <legend className="mb-2 block text-sm font-medium text-ink">
+                Account type
+              </legend>
+              <div className="grid grid-cols-2 gap-2">
+                <label className="cursor-pointer">
+                  <input
+                    type="radio"
+                    name="role"
+                    value="LISTENER"
+                    defaultChecked
+                    className="peer sr-only"
+                  />
+                  <span className="flex h-full items-center gap-3 rounded-lg border border-line bg-white p-3 text-muted transition-colors peer-checked:border-ink peer-checked:bg-soft peer-checked:text-ink peer-focus-visible:ring-2 peer-focus-visible:ring-ink peer-focus-visible:ring-offset-2">
+                    <Headphones className="h-5 w-5 flex-shrink-0" />
+                    <span>
+                      <span className="block text-sm font-semibold">Listener</span>
+                      <span className="block text-xs text-muted">Save and follow</span>
+                    </span>
+                  </span>
+                </label>
+                <label className="cursor-pointer">
+                  <input
+                    type="radio"
+                    name="role"
+                    value="CREATOR"
+                    className="peer sr-only"
+                  />
+                  <span className="flex h-full items-center gap-3 rounded-lg border border-line bg-white p-3 text-muted transition-colors peer-checked:border-ink peer-checked:bg-soft peer-checked:text-ink peer-focus-visible:ring-2 peer-focus-visible:ring-ink peer-focus-visible:ring-offset-2">
+                    <Mic2 className="h-5 w-5 flex-shrink-0" />
+                    <span>
+                      <span className="block text-sm font-semibold">Creator</span>
+                      <span className="block text-xs text-muted">Publish and analyze</span>
+                    </span>
+                  </span>
+                </label>
+              </div>
+            </fieldset>
+
             <div>
-              <label className="mb-2 block text-sm font-medium text-zinc-300">Display name</label>
+              <label className="mb-2 block text-sm font-medium text-ink">Display name</label>
               <div className="relative">
-                <User className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
+                <User className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-faint" />
                 <Input name="name" placeholder="Artist or listener name" className="pl-11" required />
               </div>
             </div>
 
             <div>
-              <label className="mb-2 block text-sm font-medium text-zinc-300">Email</label>
+              <label className="mb-2 block text-sm font-medium text-ink">Email</label>
               <div className="relative">
-                <Mail className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
+                <Mail className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-faint" />
                 <Input name="email" type="email" placeholder="you@example.com" className="pl-11" required />
               </div>
             </div>
 
             <div>
-              <label className="mb-2 block text-sm font-medium text-zinc-300">Password</label>
+              <label className="mb-2 block text-sm font-medium text-ink">Password</label>
               <div className="relative">
-                <Lock className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
-                <Input name="password" type="password" minLength={8} placeholder="At least 8 characters" className="pl-11" required />
+                <Lock className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-faint" />
+                <Input name="password" type="password" minLength={8} maxLength={72} placeholder="At least 8 characters" className="pl-11" required />
               </div>
             </div>
 
             <Button type="submit" size="lg" className="w-full">
               Create account
             </Button>
-            <p className="text-center text-sm text-zinc-500">
+            <p className="text-center text-sm text-muted">
               Already have an account?{" "}
-              <Link href="/admin/login" className="font-medium text-brand-400 hover:text-brand-300">
+              <Link href="/admin/login" className="rounded-sm font-medium text-ink underline decoration-line underline-offset-4 hover:decoration-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink">
                 Sign in
               </Link>
             </p>

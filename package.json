@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "test": "vitest run",
+    "theme:check": "node scripts/check-light-theme.mjs",
     "build": "next build",
     "start": "next start",
     "db:push": "prisma db push",
@@ -16,6 +17,7 @@
     "bcryptjs": "^2.4.3",
     "clsx": "^2.1.1",
     "lucide-react": "^0.468.0",
+    "music-metadata": "^11.14.0",
     "next": "15.3.4",
     "next-auth": "^4.24.11",
     "react": "^19.0.0",
