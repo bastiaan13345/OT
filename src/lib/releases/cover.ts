@@ -1,4 +1,4 @@
-export function shouldDeleteReleaseCover(
+export function shouldDeleteSharedCover(
   coverUrl: string | null,
   remainingReleaseReferences: number,
   remainingTrackReferences: number

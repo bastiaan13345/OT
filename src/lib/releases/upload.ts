@@ -119,8 +119,7 @@ type NewRelease = {
   coverUrl: string | null;
 };
 
-export type ReleaseUploadDependencies = {
-  findUserById: (id: string) => Promise<{ id: string; role: string } | null>;
+export type ReleaseUploadDependencies = CurrentActorDependencies & {
   findReleaseByCreationKey: (creationKey: string) => Promise<StoredRelease | null>;
   createRelease: (data: NewRelease) => Promise<StoredRelease>;
   ensureUploadDir: () => Promise<string>;
@@ -133,6 +132,14 @@ export type ReleaseUploadDependencies = {
 const defaultDependencies: ReleaseUploadDependencies = {
   findUserById: (id) => prisma.user.findUnique({
     where: { id },
+    select: { id: true, role: true },
+  }),
+  findAdminById: (id) => prisma.admin.findUnique({
+    where: { id },
+    select: { id: true, email: true },
+  }),
+  findUserByEmail: (email) => prisma.user.findUnique({
+    where: { email },
     select: { id: true, role: true },
   }),
   findReleaseByCreationKey: (creationKey) => prisma.release.findUnique({
@@ -176,18 +183,18 @@ export async function createReleaseFromUpload(
   dependencies: ReleaseUploadDependencies = defaultDependencies
 ): Promise<{ releaseId: string; coverUrl: string | null }> {
   const parsed = parseReleaseUpload(formData);
-  const sessionId = session.user?.id;
-  if (!sessionId) {
-    throw new ReleaseUploadError("This account is not linked to a platform user.", 403);
-  }
-
-  const actor = await dependencies.findUserById(sessionId);
-  if (!actor || (actor.role !== "CREATOR" && actor.role !== "ADMIN")) {
-    throw new ReleaseUploadError("A creator account is required to create releases.", 403);
+  let actor;
+  try {
+    actor = await resolveCurrentCreator(session, dependencies);
+  } catch (error) {
+    if (error instanceof CurrentActorError) {
+      throw new ReleaseUploadError(error.message, error.status);
+    }
+    throw error;
   }
 
   const existing = await dependencies.findReleaseByCreationKey(parsed.creationKey);
-  if (existing) return existingResult(existing, actor.id);
+  if (existing) return existingResult(existing, actor.userId);
 
   let coverUrl: string | null = null;
   let writtenCoverPath: string | null = null;
@@ -195,6 +202,8 @@ export async function createReleaseFromUpload(
     if (parsed.cover) {
       const coverCheck = validateImageFile(parsed.cover);
       if (!coverCheck.ok) throw new ReleaseUploadError(coverCheck.message);
+      const magicCheck = await validateImageMagic(parsed.cover);
+      if (!magicCheck.ok) throw new ReleaseUploadError(magicCheck.message);
 
       const coverDir = await dependencies.ensureUploadDir();
       const fileName = dependencies.uniqueFileName(
@@ -216,7 +225,7 @@ export async function createReleaseFromUpload(
       type: parsed.type,
       releaseDate: toUtcNoon(parsed.releaseDate),
       published: parsed.published,
-      creatorId: actor.id,
+      creatorId: actor.userId,
       coverUrl,
     });
     return { releaseId: created.id, coverUrl: created.coverUrl };
@@ -225,7 +234,7 @@ export async function createReleaseFromUpload(
 
     if ((error as { code?: string } | null)?.code === "P2002") {
       const racedRelease = await dependencies.findReleaseByCreationKey(parsed.creationKey);
-      if (racedRelease) return existingResult(racedRelease, actor.id);
+      if (racedRelease) return existingResult(racedRelease, actor.userId);
       conflict();
     }
     if (error instanceof ReleaseUploadError) throw error;
@@ -237,3 +246,9 @@ import { join } from "path";
 import { prisma } from "@/lib/prisma";
 import { ensureUploadDir as ensureDir, publicUrl as makePublicUrl, uniqueFileName as makeUniqueFileName } from "@/lib/audio/storage";
 import { sanitizeBaseName, validateImageFile } from "@/lib/audio/validate";
+import { validateImageMagic } from "@/lib/audio/image";
+import {
+  CurrentActorError,
+  resolveCurrentCreator,
+  type CurrentActorDependencies,
+} from "@/lib/auth/actor";

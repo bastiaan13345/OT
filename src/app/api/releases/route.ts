@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { authOptions } from "@/lib/auth";
 import { MAX_IMAGE_BYTES } from "@/lib/audio/validate";
 import { requestHasValidOrigin } from "@/lib/http/origin";
+import { MultipartLimitError, parseMultipartFormData } from "@/lib/http/multipart";
 import {
   createReleaseFromUpload,
   ReleaseUploadError,
@@ -43,8 +44,14 @@ export async function POST(request: Request) {
 
   let formData: FormData;
   try {
-    formData = await request.formData();
+    formData = await parseMultipartFormData(request, MAX_MULTIPART_BYTES);
   } catch (error) {
+    if (error instanceof MultipartLimitError) {
+      return NextResponse.json(
+        { error: "Upload exceeds the 10 MB cover limit." },
+        { status: 413 }
+      );
+    }
     console.error("Could not parse release upload form", error);
     return NextResponse.json(
       { error: "The release form was incomplete. Please try again." },

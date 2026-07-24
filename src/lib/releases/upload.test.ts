@@ -81,9 +81,15 @@ function uploadForm(cover?: File) {
   });
 }
 
+function jpegCover(name = "cover.jpg") {
+  return new File([new Uint8Array([0xff, 0xd8, 0xff, 0xe0])], name, { type: "image/jpeg" });
+}
+
 function dependencies(overrides: Partial<ReleaseUploadDependencies> = {}): ReleaseUploadDependencies {
   return {
     findUserById: async () => ({ id: "creator-1", role: "CREATOR" }),
+    findAdminById: async () => null,
+    findUserByEmail: async () => null,
     findReleaseByCreationKey: async () => null,
     createRelease: async () => ({ id: "release-1", creatorId: "creator-1", coverUrl: "/uploads/covers/night-drive.jpg" }),
     ensureUploadDir: async () => "/tmp/covers",
@@ -110,9 +116,23 @@ describe("createReleaseFromUpload", () => {
     });
   });
 
+  it("uses a verified Admin bridge instead of the JWT role or session email", async () => {
+    const adminSession = { user: { id: "admin-1", email: "untrusted@example.test", role: "CREATOR" } };
+    const result = await createReleaseFromUpload(uploadForm(), adminSession, {
+      ...dependencies({
+        findUserById: async () => null,
+        createRelease: async (data) => ({ id: "release-admin", creatorId: data.creatorId, coverUrl: null }),
+      }),
+      findAdminById: async () => ({ id: "admin-1", email: "verified-admin@example.test" }),
+      findUserByEmail: async (email: string) => email === "verified-admin@example.test" ? { id: "shadow-creator", role: "LISTENER" } : null,
+    } as ReleaseUploadDependencies);
+
+    expect(result).toEqual({ releaseId: "release-admin", coverUrl: null });
+  });
+
   it("returns a same-creator retry without writing another cover", async () => {
     let wrote = false;
-    const result = await createReleaseFromUpload(uploadForm(new File(["cover"], "cover.jpg", { type: "image/jpeg" })), session, dependencies({
+    const result = await createReleaseFromUpload(uploadForm(jpegCover()), session, dependencies({
       findReleaseByCreationKey: async () => ({ id: "release-existing", creatorId: "creator-1", coverUrl: "/uploads/covers/existing.jpg" }),
       writeFile: async () => { wrote = true; },
     }));
@@ -134,7 +154,7 @@ describe("createReleaseFromUpload", () => {
   it("validates and writes one cover before persisting its public URL", async () => {
     let writePath = "";
     let createdCover: string | null | undefined;
-    await createReleaseFromUpload(uploadForm(new File(["cover"], "night drive.jpg", { type: "image/jpeg" })), session, dependencies({
+    await createReleaseFromUpload(uploadForm(jpegCover("night drive.jpg")), session, dependencies({
       writeFile: async (path) => { writePath = path; },
       createRelease: async (data) => {
         createdCover = data.coverUrl;
@@ -155,7 +175,7 @@ describe("createReleaseFromUpload", () => {
 
   it("removes a newly written cover when persistence fails", async () => {
     let removed = "";
-    await expect(createReleaseFromUpload(uploadForm(new File(["cover"], "cover.jpg", { type: "image/jpeg" })), session, dependencies({
+    await expect(createReleaseFromUpload(uploadForm(jpegCover()), session, dependencies({
       createRelease: async () => { throw new Error("database unavailable"); },
       unlink: async (path) => { removed = path; },
     }))).rejects.toMatchObject({ status: 500 });
@@ -166,7 +186,7 @@ describe("createReleaseFromUpload", () => {
   it("cleans a race-lost cover and returns only the same creator's persisted release", async () => {
     let removed = "";
     let lookups = 0;
-    await expect(createReleaseFromUpload(uploadForm(new File(["cover"], "cover.jpg", { type: "image/jpeg" })), session, dependencies({
+    await expect(createReleaseFromUpload(uploadForm(jpegCover()), session, dependencies({
       createRelease: async () => { throw { code: "P2002" }; },
       findReleaseByCreationKey: async () => ++lookups === 1 ? null : ({ id: "release-race", creatorId: "creator-1", coverUrl: "/uploads/covers/race.jpg" }),
       unlink: async (path) => { removed = path; },
@@ -174,9 +194,16 @@ describe("createReleaseFromUpload", () => {
     expect(removed).toBe("/tmp/covers/night-drive.jpg");
 
     lookups = 0;
-    await expect(createReleaseFromUpload(uploadForm(new File(["cover"], "cover.jpg", { type: "image/jpeg" })), session, dependencies({
+    await expect(createReleaseFromUpload(uploadForm(jpegCover()), session, dependencies({
       createRelease: async () => { throw { code: "P2002" }; },
       findReleaseByCreationKey: async () => ++lookups === 1 ? null : ({ id: "release-race", creatorId: "creator-2", coverUrl: "/uploads/covers/race.jpg" }),
     }))).rejects.toMatchObject({ status: 409, message: "This release request conflicts." });
+  });
+
+  it("rejects a cover whose bytes do not match its declared image extension", async () => {
+    await expect(createReleaseFromUpload(uploadForm(new File(["not a JPEG"], "cover.jpg", { type: "image/jpeg" })), session, dependencies())).rejects.toMatchObject({
+      name: "ReleaseUploadError",
+      status: 400,
+    });
   });
 });
