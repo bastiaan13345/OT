@@ -1,0 +1,92 @@
+<style>
+  .direction-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:18px; margin-top:24px; }
+  .direction { cursor:pointer; border:2px solid transparent; border-radius:18px; overflow:hidden; background:#fff; box-shadow:0 12px 36px rgba(0,0,0,.08); transition:.2s ease; }
+  .direction:hover { transform:translateY(-3px); }
+  .direction.selected { border-color:#111; }
+  .preview { height:320px; display:grid; grid-template-columns:64px 1fr; font-family:Inter,system-ui,sans-serif; }
+  .rail { padding:16px 11px; border-right:1px solid; display:flex; flex-direction:column; gap:14px; }
+  .logo { width:39px; height:39px; object-fit:contain; }
+  .nav-dot { width:34px; height:9px; border-radius:99px; opacity:.52; }
+  .main { padding:20px 18px; overflow:hidden; }
+  .eyeline { width:64px; height:7px; border-radius:99px; opacity:.42; }
+  .title { margin-top:9px; font-size:26px; line-height:1; font-weight:750; letter-spacing:-.05em; }
+  .rule { height:1px; margin:15px 0; }
+  .feature { display:grid; grid-template-columns:1.15fr .85fr; gap:12px; align-items:end; }
+  .cover { aspect-ratio:1; border-radius:13px; background:linear-gradient(145deg,#cfcfcf,#191919); box-shadow:0 12px 26px rgba(0,0,0,.16); }
+  .cover.alt { background:linear-gradient(145deg,#e1d5c7,#36322e); }
+  .cover.stark { background:linear-gradient(145deg,#111 0 48%,#f1f1f1 48%); border-radius:0; }
+  .track { height:10px; width:88%; margin-top:10px; border-radius:99px; }
+  .meta { height:7px; width:60%; margin-top:7px; border-radius:99px; opacity:.38; }
+  .mini-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-top:17px; }
+  .mini { height:46px; border:1px solid; border-radius:10px; }
+  .label-block { padding:16px 17px 18px; color:#181818; }
+  .label-block h3 { margin:0 0 5px; font-size:16px; }
+  .label-block p { margin:0; color:#666; font-size:13px; line-height:1.45; }
+  .recommended { display:inline-block; margin-top:10px; padding:4px 8px; border-radius:999px; background:#111; color:#fff; font-size:10px; font-weight:700; letter-spacing:.05em; text-transform:uppercase; }
+  .mono .preview { background:#fff; color:#101010; }
+  .mono .rail { background:#f7f7f7; border-color:#dedede; }
+  .mono .nav-dot,.mono .track { background:#111; }
+  .mono .rule,.mono .mini { border-color:#ddd; background:#fafafa; }
+  .soft .preview { background:#f4f1eb; color:#24221f; }
+  .soft .rail { background:#ece8e0; border-color:#d4cec4; }
+  .soft .nav-dot,.soft .track { background:#38342f; }
+  .soft .rule,.soft .mini { border-color:#d4cec4; background:#faf8f3; }
+  .editorial .preview { background:#fff; color:#050505; }
+  .editorial .rail { background:#050505; border-color:#050505; }
+  .editorial .rail .logo { filter:invert(1); }
+  .editorial .nav-dot { background:#fff; }
+  .editorial .track { background:#050505; }
+  .editorial .rule { background:#050505; height:3px; }
+  .editorial .mini { border-color:#050505; border-radius:0; background:#fff; }
+  @media (max-width:900px){ .direction-grid{grid-template-columns:1fr}.preview{height:285px} }
+</style>
+
+<h2>Which light direction should Infini lead?</h2>
+<p class="subtitle">All three use only the SVG in navigation. Click the treatment that best fits the app.</p>
+
+<div class="direction-grid">
+  <div class="direction mono" data-choice="editorial-monochrome" onclick="toggleSelect(this)">
+    <div class="preview">
+      <div class="rail">
+        <img class="logo" src="/files/Infini.svg" alt="Infini logo">
+        <div class="nav-dot"></div><div class="nav-dot"></div><div class="nav-dot"></div>
+      </div>
+      <div class="main">
+        <div class="eyeline" style="background:#111"></div><div class="title">Listen now</div><div class="rule"></div>
+        <div class="feature"><div><div class="cover"></div><div class="track"></div><div class="meta" style="background:#111"></div></div><div><div class="cover alt"></div><div class="track"></div><div class="meta" style="background:#111"></div></div></div>
+        <div class="mini-grid"><div class="mini"></div><div class="mini"></div></div>
+      </div>
+    </div>
+    <div class="label-block"><h3>A. Editorial monochrome</h3><p>Pure white, ink black, and cool gray. Album artwork supplies the only strong color.</p><span class="recommended">Recommended</span></div>
+  </div>
+
+  <div class="direction soft" data-choice="soft-studio" onclick="toggleSelect(this)">
+    <div class="preview">
+      <div class="rail">
+        <img class="logo" src="/files/Infini.svg" alt="Infini logo">
+        <div class="nav-dot"></div><div class="nav-dot"></div><div class="nav-dot"></div>
+      </div>
+      <div class="main">
+        <div class="eyeline" style="background:#38342f"></div><div class="title">Listen now</div><div class="rule"></div>
+        <div class="feature"><div><div class="cover alt"></div><div class="track"></div><div class="meta" style="background:#38342f"></div></div><div><div class="cover"></div><div class="track"></div><div class="meta" style="background:#38342f"></div></div></div>
+        <div class="mini-grid"><div class="mini"></div><div class="mini"></div></div>
+      </div>
+    </div>
+    <div class="label-block"><h3>B. Soft studio neutral</h3><p>Warm off-white, charcoal, and stone. Softer and more tactile, but less exact to the logo.</p></div>
+  </div>
+
+  <div class="direction editorial" data-choice="high-contrast-magazine" onclick="toggleSelect(this)">
+    <div class="preview">
+      <div class="rail">
+        <img class="logo" src="/files/Infini.svg" alt="Infini logo">
+        <div class="nav-dot"></div><div class="nav-dot"></div><div class="nav-dot"></div>
+      </div>
+      <div class="main">
+        <div class="eyeline" style="background:#050505"></div><div class="title">LISTEN NOW</div><div class="rule"></div>
+        <div class="feature"><div><div class="cover stark"></div><div class="track"></div><div class="meta" style="background:#050505"></div></div><div><div class="cover alt stark"></div><div class="track"></div><div class="meta" style="background:#050505"></div></div></div>
+        <div class="mini-grid"><div class="mini"></div><div class="mini"></div></div>
+      </div>
+    </div>
+    <div class="label-block"><h3>C. High-contrast magazine</h3><p>Bold black rails, heavier rules, and square geometry. Distinctive, but more visually aggressive.</p></div>
+  </div>
+</div>

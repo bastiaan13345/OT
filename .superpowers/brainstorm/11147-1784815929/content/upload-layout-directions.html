@@ -1,0 +1,64 @@
+<h2>Choose the upload flow direction</h2>
+<p class="subtitle">All three support shared album artwork, editable track names, drag ordering, and previous-value suggestions.</p>
+
+<div class="cards">
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:18px;background:#0d0d12;color:#fff;min-height:315px">
+      <div style="display:flex;gap:6px;margin-bottom:16px">
+        <span style="padding:7px 12px;border-radius:999px;background:#e11d48;font-size:12px;font-weight:700">Single track</span>
+        <span style="padding:7px 12px;border-radius:999px;background:#27272f;color:#aaa;font-size:12px">Create album</span>
+      </div>
+      <div style="border:1px dashed #52525b;border-radius:14px;padding:20px;text-align:center;margin-bottom:12px;color:#aaa">Drop audio here</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px">
+        <div class="mock-input">Track title</div><div class="mock-input">Artist</div>
+        <div class="mock-input">Genre suggestions</div><div class="mock-input">Album</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:14px">
+        <div style="width:42px;height:24px;border-radius:20px;background:#e11d48;padding:3px"><div style="width:18px;height:18px;border-radius:50%;background:white;margin-left:auto"></div></div>
+        <span style="font-size:12px;color:#ccc">Allow downloads</span>
+        <div style="margin-left:auto;padding:8px 12px;border:1px solid #3f3f46;border-radius:9px;font-size:12px">22 Jul 2026&nbsp; 📅</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A · Unified studio <span style="color:#f43f5e">Recommended</span></h3>
+      <p>A segmented Single/Album mode keeps one familiar page. Shared fields stay in place; album mode adds an ordered track workspace.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:18px;background:#0d0d12;color:#fff;min-height:315px">
+      <div style="font-size:12px;color:#888;margin-bottom:14px">1 Files&nbsp;&nbsp;—&nbsp;&nbsp;2 Details&nbsp;&nbsp;—&nbsp;&nbsp;3 Review</div>
+      <div style="border:1px dashed #52525b;border-radius:14px;padding:24px;text-align:center;color:#aaa;margin-bottom:12px">Drop one or many tracks</div>
+      <div style="display:flex;gap:10px;margin-bottom:9px"><div style="width:44px;height:44px;border-radius:8px;background:linear-gradient(135deg,#e11d48,#7c3aed)"></div><div style="flex:1"><div style="font-size:13px">01 — Neon Weather.mp3</div><div style="font-size:11px;color:#777">Ready · 4.2 MB</div></div></div>
+      <div style="display:flex;gap:10px"><div style="width:44px;height:44px;border-radius:8px;background:linear-gradient(135deg,#e11d48,#7c3aed)"></div><div style="flex:1"><div style="font-size:13px">02 — Static Bloom.wav</div><div style="font-size:11px;color:#777">Ready · 18.6 MB</div></div></div>
+      <button class="mock-button" style="float:right;margin-top:18px">Continue →</button>
+    </div>
+    <div class="card-body">
+      <h3>B · Guided wizard</h3>
+      <p>Clear staged steps and strong review moment, but slower for quick single uploads and harder to revise across steps.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:18px;background:#0d0d12;color:#fff;min-height:315px">
+      <div style="display:grid;grid-template-columns:145px 1fr;gap:12px">
+        <div style="border:1px solid #27272f;border-radius:14px;padding:12px">
+          <div style="height:110px;border-radius:9px;background:linear-gradient(135deg,#e11d48,#7c3aed);margin-bottom:12px"></div>
+          <div style="font-size:12px;margin-bottom:7px">Album details</div>
+          <div style="font-size:10px;color:#777">Artwork · date · options</div>
+        </div>
+        <div>
+          <div style="border:1px solid #27272f;border-radius:11px;padding:11px;margin-bottom:8px"><strong style="font-size:12px">⋮⋮ 01</strong><div class="mock-input" style="margin-top:7px">Neon Weather</div></div>
+          <div style="border:1px solid #27272f;border-radius:11px;padding:11px;margin-bottom:8px"><strong style="font-size:12px">⋮⋮ 02</strong><div class="mock-input" style="margin-top:7px">Static Bloom</div></div>
+          <div style="border:1px dashed #52525b;border-radius:11px;padding:12px;text-align:center;color:#888;font-size:11px">+ Add tracks</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C · Album-first workspace</h3>
+      <p>Best density for large albums, but over-specializes the page and makes one-track publishing feel secondary.</p>
+    </div>
+  </div>
+</div>
+
+<p class="subtitle" style="margin-top:20px">Click a direction, then reply in the chat with any visual changes you want.</p>
