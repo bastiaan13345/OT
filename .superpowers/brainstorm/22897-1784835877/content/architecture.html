@@ -1,0 +1,84 @@
+<h2>OpenTunes native architecture</h2>
+<p class="subtitle">One shared Apple codebase, one self-hosted application backend, and durable media in Cloudflare R2</p>
+
+<div class="mockup">
+  <div class="mockup-header">Runtime data flow</div>
+  <div class="mockup-body">
+    <div style="display:grid;grid-template-columns:minmax(190px,1fr) 80px minmax(250px,1.25fr) 80px minmax(190px,1fr);gap:14px;align-items:center;padding:16px;">
+      <div style="display:grid;gap:14px;">
+        <div style="border:1px solid rgba(255,255,255,.14);border-radius:18px;padding:18px;background:rgba(70,85,120,.18);">
+          <div class="label">Apple client</div>
+          <h3 style="margin:.4rem 0;">iPhone · iOS 26</h3>
+          <p>TabView, NavigationStack, Liquid Glass mini-player, Keychain tokens, permitted downloads.</p>
+        </div>
+        <div style="border:1px solid rgba(255,255,255,.14);border-radius:18px;padding:18px;background:rgba(70,85,120,.18);">
+          <div class="label">Apple client</div>
+          <h3 style="margin:.4rem 0;">Mac · macOS 26</h3>
+          <p>NavigationSplitView, global search, commands, Liquid Glass toolbar, optional NSPanel mini-player.</p>
+        </div>
+        <div style="border:1px solid rgba(255,255,255,.14);border-radius:18px;padding:18px;background:rgba(70,85,120,.18);">
+          <div class="label">Existing client</div>
+          <h3 style="margin:.4rem 0;">Next.js web app</h3>
+          <p>Remains functional and calls the same extracted service layer.</p>
+        </div>
+      </div>
+
+      <div style="text-align:center;color:#aab7ff;font-weight:700;line-height:1.5;">HTTPS<br>JSON<br>↔</div>
+
+      <div style="border:1px solid rgba(255,255,255,.18);border-radius:22px;padding:20px;background:rgba(124,85,200,.13);">
+        <div class="label">Your internet-connected PC</div>
+        <h3 style="margin:.4rem 0 1rem;">Docker Compose host</h3>
+        <div style="display:grid;gap:10px;">
+          <div style="border-radius:13px;padding:12px;background:rgba(255,255,255,.07);"><strong>cloudflared</strong><br><span style="opacity:.76">Outbound tunnel · no router ports</span></div>
+          <div style="border-radius:13px;padding:12px;background:rgba(255,255,255,.07);"><strong>Next.js + /api/v1</strong><br><span style="opacity:.76">Catalog, auth, library, social, playback</span></div>
+          <div style="border-radius:13px;padding:12px;background:rgba(255,255,255,.07);"><strong>Shared service layer</strong><br><span style="opacity:.76">One authorization and validation path for web + native</span></div>
+          <div style="border-radius:13px;padding:12px;background:rgba(255,255,255,.07);"><strong>PostgreSQL</strong><br><span style="opacity:.76">Accounts, tokens, catalog, playlists, social state</span></div>
+        </div>
+      </div>
+
+      <div style="text-align:center;color:#aab7ff;font-weight:700;line-height:1.5;">Signed<br>media URLs<br>↔</div>
+
+      <div style="border:1px solid rgba(255,255,255,.14);border-radius:18px;padding:18px;background:rgba(49,160,140,.12);">
+        <div class="label">Cloudflare</div>
+        <h3 style="margin:.4rem 0;">R2 media storage</h3>
+        <p>Audio, artwork, avatars, and explicit downloadable files. The database and private application logic stay on your PC.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Shared Apple modules</h3>
+  <p><strong>OpenTunesCore</strong> owns models and errors; <strong>OpenTunesAPI</strong> owns URLSession and token refresh; <strong>OpenTunesAuth</strong> owns account state and Keychain access; <strong>OpenTunesPlayback</strong> owns AVPlayer queue, Now Playing, remote commands, and downloads; feature modules own Home, Browse, Library, Feed, Social, and account UI. Platform shells only compose navigation and platform adapters.</p>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>Intentional boundaries</h4>
+    <ul>
+      <li>No React Server Action protocol in native clients</li>
+      <li>No raw Prisma records or internal media locators in API responses</li>
+      <li>No database or R2 credentials in Apple apps</li>
+      <li>SwiftUI owns playback state; AppKit owns only NSPanel lifecycle</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>Known availability boundary</h4>
+    <ul>
+      <li>If the PC is offline, new API activity and social state stop</li>
+      <li>Previously permitted downloads and cached metadata still work</li>
+      <li>R2 media alone cannot replace unavailable catalog/auth APIs</li>
+    </ul>
+  </div>
+</div>
+
+<div class="options">
+  <div class="option" data-choice="approve-architecture" onclick="toggleSelect(this)">
+    <div class="letter">✓</div>
+    <div class="content"><h3>Architecture looks right</h3><p>Continue to the native macOS and iPhone experience.</p></div>
+  </div>
+  <div class="option" data-choice="revise-architecture" onclick="toggleSelect(this)">
+    <div class="letter">↻</div>
+    <div class="content"><h3>I want changes</h3><p>Select this and describe the change in the terminal.</p></div>
+  </div>
+</div>
