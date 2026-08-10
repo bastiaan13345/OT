@@ -3,10 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "build": "opennextjs-cloudflare build",
+    "build:next": "prisma generate && next build",
     "dev": "next dev",
     "test": "vitest run",
     "theme:check": "node scripts/check-light-theme.mjs",
-    "build": "next build",
+    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
     "start": "next start",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
@@ -18,7 +21,7 @@
     "clsx": "^2.1.1",
     "lucide-react": "^0.468.0",
     "music-metadata": "^11.14.0",
-    "next": "15.3.4",
+    "next": "15.5.23",
     "next-auth": "^4.24.11",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
@@ -28,6 +31,7 @@
     "seed": "tsx prisma/seed.ts"
   },
   "devDependencies": {
+    "@opennextjs/cloudflare": "1.20.2",
     "@testing-library/jest-dom": "^7.0.0",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
@@ -42,6 +46,7 @@
     "tailwindcss": "^3.4.17",
     "tsx": "^4.19.2",
     "typescript": "^5",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.10",
+    "wrangler": "4.120.1"
   }
 }
