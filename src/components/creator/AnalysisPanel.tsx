@@ -77,7 +77,7 @@ export function AnalysisPanel({ analysis }: { analysis: AudioAnalysis | null }) 
 
       <dl className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {metrics.map((m) => (
-          <div key={m.label} className="rounded-lg border border-line bg-white p-3">
+          <div key={m.label} className="rounded-lg border border-line bg-canvas p-3">
             <dt className="text-xs text-muted">{m.label}</dt>
             <dd className="mt-0.5 font-mono text-sm font-semibold text-ink">{m.value}</dd>
             {m.hint && <p className="mt-0.5 text-[10px] text-muted">{m.hint}</p>}
@@ -86,7 +86,7 @@ export function AnalysisPanel({ analysis }: { analysis: AudioAnalysis | null }) 
       </dl>
 
       {analysis.suggestions.length > 0 && (
-        <div className="mt-4 rounded-lg border border-line bg-white p-4">
+        <div className="mt-4 rounded-lg border border-line bg-canvas p-4">
           <div className="mb-2 flex items-center gap-2 text-xs font-semibold text-ink">
             <Info className="h-3.5 w-3.5 text-muted" /> Suggestions
           </div>

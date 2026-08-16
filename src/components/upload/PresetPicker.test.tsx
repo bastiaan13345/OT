@@ -40,7 +40,7 @@ describe("PresetPicker", () => {
     await user.click(trigger);
 
     const picker = screen.getByRole("dialog", { name: "Upload presets" });
-    expect(picker).toHaveClass("bg-white");
+    expect(picker).toHaveClass("bg-canvas");
     expect(picker).not.toHaveAttribute("aria-modal");
     expect(trigger).toHaveAttribute("aria-controls", picker.id);
     expect(trigger).toHaveAttribute("aria-haspopup", "dialog");

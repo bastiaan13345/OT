@@ -52,7 +52,7 @@ export function AudioDropzone({ multiple, onFiles, disabled = false }: AudioDrop
         htmlFor={inputId}
         className={`flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-line px-4 py-6 text-sm transition-colors ${
           dragActive
-            ? "border-brand-500 bg-soft"
+            ? "border-ink bg-soft"
             : "border-line bg-panel hover:bg-soft"
         } ${disabled ? "cursor-not-allowed opacity-50" : ""}`}
         onDragEnter={(e) => {

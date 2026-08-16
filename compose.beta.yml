@@ -1,0 +1,39 @@
+services:
+  infini:
+    build: .
+    image: ${INFINI_IMAGE:?Set INFINI_IMAGE to an immutable commit tag or image digest}
+    restart: unless-stopped
+    env_file:
+      - ${INFINI_ENV_FILE:-.env.production}
+    environment:
+      DATABASE_URL: file:/data/infini.db
+      MEDIA_ROOT: /data/media
+    ports:
+      - "127.0.0.1:3000:3000"
+    cpus: "2.0"
+    mem_limit: 2g
+    pids_limit: 256
+    volumes:
+      - infini-data:/data
+      - ./backups:/backups
+    read_only: true
+    tmpfs:
+      - /tmp:uid=1000,gid=1000,mode=1777
+      - /app/.next-build/cache:uid=1000,gid=1000,mode=0755
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - fetch('http://127.0.0.1:3000/api/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+volumes:
+  infini-data:

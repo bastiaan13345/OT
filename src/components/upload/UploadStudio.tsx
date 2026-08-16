@@ -356,8 +356,8 @@ export function UploadStudio({ initialData }: UploadStudioProps) {
           disabled={busy}
           className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition upload-control-focus ${
             mode === "single"
-              ? "bg-ink text-white"
-              : "border border-line bg-white text-ink hover:bg-soft"
+              ? "bg-ink text-canvas"
+              : "border border-line bg-canvas text-ink hover:bg-soft"
           }`}
         >
           <Music2 className="h-4 w-4" aria-hidden />
@@ -369,8 +369,8 @@ export function UploadStudio({ initialData }: UploadStudioProps) {
           disabled={busy}
           className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition upload-control-focus ${
             mode === "album"
-              ? "bg-ink text-white"
-              : "border border-line bg-white text-ink hover:bg-soft"
+              ? "bg-ink text-canvas"
+              : "border border-line bg-canvas text-ink hover:bg-soft"
           }`}
         >
           <Sparkles className="h-4 w-4" aria-hidden />
@@ -401,7 +401,7 @@ export function UploadStudio({ initialData }: UploadStudioProps) {
                       maxLength={200}
                       value={shared.title ?? ""}
                       disabled={busy}
-                      className="w-full rounded-lg border border-line bg-white px-4 py-2.5 text-sm text-ink transition upload-control-focus disabled:opacity-50"
+                      className="w-full rounded-lg border border-line bg-canvas px-4 py-2.5 text-sm text-ink transition upload-control-focus disabled:opacity-50"
                       onChange={(e) => onSharedPatch({ title: e.target.value })}
                     />
                   </div>
@@ -413,7 +413,7 @@ export function UploadStudio({ initialData }: UploadStudioProps) {
                       maxLength={200}
                       value={shared.artist ?? ""}
                       disabled={busy}
-                      className="w-full rounded-lg border border-line bg-white px-4 py-2.5 text-sm text-ink transition upload-control-focus disabled:opacity-50"
+                      className="w-full rounded-lg border border-line bg-canvas px-4 py-2.5 text-sm text-ink transition upload-control-focus disabled:opacity-50"
                       onChange={(e) => onSharedPatch({ artist: e.target.value })}
                     />
                   </div>
@@ -434,7 +434,7 @@ export function UploadStudio({ initialData }: UploadStudioProps) {
                       type="text"
                       value={shared.price ?? ""}
                       disabled={busy}
-                      className="w-full rounded-lg border border-line bg-white px-4 py-2.5 text-sm text-ink transition upload-control-focus disabled:opacity-50"
+                      className="w-full rounded-lg border border-line bg-canvas px-4 py-2.5 text-sm text-ink transition upload-control-focus disabled:opacity-50"
                       onChange={(e) => onSharedPatch({ price: e.target.value })}
                     />
                   </div>
@@ -448,7 +448,7 @@ export function UploadStudio({ initialData }: UploadStudioProps) {
                     rows={3}
                     value={shared.description ?? ""}
                     disabled={busy}
-                    className="w-full rounded-lg border border-line bg-white px-4 py-2.5 text-sm text-ink transition upload-control-focus disabled:opacity-50"
+                    className="w-full rounded-lg border border-line bg-canvas px-4 py-2.5 text-sm text-ink transition upload-control-focus disabled:opacity-50"
                     style={{ colorScheme: "light" }}
                     onChange={(e) => onSharedPatch({ description: e.target.value })}
                   />
@@ -476,7 +476,7 @@ export function UploadStudio({ initialData }: UploadStudioProps) {
                     <button
                       type="button"
                       disabled={busy}
-                      className="rounded-lg border border-line bg-white px-3 py-2 text-sm text-ink transition hover:bg-soft upload-control-focus disabled:opacity-50"
+                      className="rounded-lg border border-line bg-canvas px-3 py-2 text-sm text-ink transition hover:bg-soft upload-control-focus disabled:opacity-50"
                       onClick={() => singleCoverRef.current?.click()}
                     >
                       {coverFile ? "Change cover" : "Choose cover"}
@@ -510,7 +510,7 @@ export function UploadStudio({ initialData }: UploadStudioProps) {
             <button
               type="button"
               disabled={busy}
-              className="inline-flex items-center gap-2 rounded-xl bg-ink px-6 py-3 text-sm font-medium text-white transition hover:bg-black disabled:opacity-50 upload-control-focus"
+              className="inline-flex items-center gap-2 rounded-xl bg-ink px-6 py-3 text-sm font-medium text-canvas transition hover:opacity-80 disabled:opacity-50 upload-control-focus"
               onClick={submitSingle}
             >
               <UploadIcon className="h-4 w-4" aria-hidden />
@@ -581,7 +581,7 @@ export function UploadStudio({ initialData }: UploadStudioProps) {
               <button
                 type="button"
                 disabled={busy || !albumTitle.trim() || rows.length === 0}
-                className="inline-flex items-center gap-2 rounded-xl bg-ink px-6 py-3 text-sm font-medium text-white transition hover:bg-black disabled:opacity-50 upload-control-focus disabled:cursor-not-allowed"
+                className="inline-flex items-center gap-2 rounded-xl bg-ink px-6 py-3 text-sm font-medium text-canvas transition hover:opacity-80 disabled:opacity-50 upload-control-focus disabled:cursor-not-allowed"
                 onClick={submitAlbum}
               >
                 <UploadIcon className="h-4 w-4" aria-hidden />

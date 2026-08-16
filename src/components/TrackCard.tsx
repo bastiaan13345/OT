@@ -16,7 +16,7 @@ interface TrackCardProps {
   className?: string;
 }
 
-export function TrackCard({ track, onPlay, queue, sourceLabel = "OpenTunes", className }: TrackCardProps) {
+export function TrackCard({ track, onPlay, queue, sourceLabel = "Infini", className }: TrackCardProps) {
   const player = usePlayer();
   const isActive = player.currentTrack?.id === track.id;
   const isPlaying = isActive && player.isPlaying;
@@ -43,7 +43,7 @@ export function TrackCard({ track, onPlay, queue, sourceLabel = "OpenTunes", cla
   return (
     <div
       className={cn(
-        "group relative flex flex-col overflow-hidden rounded-xl border border-line bg-white transition-all hover:border-ink hover:bg-panel",
+        "group relative flex flex-col overflow-hidden rounded-xl border border-line bg-canvas transition-all hover:border-ink hover:bg-panel",
         className
       )}
     >
@@ -77,7 +77,7 @@ export function TrackCard({ track, onPlay, queue, sourceLabel = "OpenTunes", cla
         <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
           <button
             onClick={handlePlay}
-            className="flex h-14 w-14 items-center justify-center rounded-full bg-ink text-white shadow-2xl shadow-black/20 transition-all hover:scale-105 hover:bg-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+            className="flex h-14 w-14 items-center justify-center rounded-full bg-ink text-canvas shadow-2xl shadow-black/20 transition-all hover:scale-105 hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
             aria-label={isPlaying ? `Pause ${track.title}` : `Play ${track.title}`}
           >
             {isPlaying ? (
@@ -100,7 +100,7 @@ export function TrackCard({ track, onPlay, queue, sourceLabel = "OpenTunes", cla
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
             <Link href={`/track/${track.id}`} className="rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink">
-              <h3 className="truncate font-semibold text-ink transition-colors hover:text-black">
+              <h3 className="truncate font-semibold text-ink transition-colors hover:text-ink">
                 {track.title}
               </h3>
             </Link>

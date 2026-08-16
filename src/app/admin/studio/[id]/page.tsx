@@ -139,7 +139,7 @@ export default async function StudioPage({
       {/* Versions */}
       <section className="mb-6">
         <h2 className="mb-3 text-lg font-semibold text-ink">Versions</h2>
-        <div className="divide-y divide-line overflow-hidden rounded-xl border border-line bg-white">
+        <div className="divide-y divide-line overflow-hidden rounded-xl border border-line bg-canvas">
           {versions.length === 0 ? (
             <div className="p-6 text-sm text-muted">
               No versions recorded yet. Click <strong className="text-ink">Run analysis</strong> above

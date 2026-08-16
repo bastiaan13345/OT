@@ -12,10 +12,10 @@ export function AddToPlaylistForm({ trackId, playlists }: AddToPlaylistFormProps
   if (!playlists.length) return null;
 
   return (
-    <form action={(formData) => addTrackToPlaylist(trackId, formData)} className="flex items-center gap-2">
+    <form action={(formData) => addTrackToPlaylist(trackId, formData)} className="flex w-full min-w-0 items-center gap-2">
       <select
         name="playlistId"
-        className="rounded-lg border border-line bg-white px-3 py-2 text-sm text-ink focus:border-ink focus:outline-none focus:ring-2 focus:ring-ink/15"
+        className="min-w-0 flex-1 rounded-lg border border-line bg-canvas px-3 py-2 text-sm text-ink focus:border-ink focus:outline-none focus:ring-2 focus:ring-ink/15"
       >
         {playlists.map((playlist) => (
           <option key={playlist.id} value={playlist.id}>
@@ -25,7 +25,7 @@ export function AddToPlaylistForm({ trackId, playlists }: AddToPlaylistFormProps
       </select>
       <button
         type="submit"
-        className="inline-flex items-center gap-2 rounded-lg bg-ink px-3 py-2 text-sm font-medium text-white hover:bg-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2"
+        className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-ink px-3 py-2 text-sm font-medium text-canvas hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2"
       >
         <ListPlus className="h-4 w-4" />
         Save

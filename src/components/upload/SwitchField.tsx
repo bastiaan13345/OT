@@ -38,7 +38,7 @@ export function SwitchField({
         className: [
           "upload-control-focus relative inline-flex h-7 w-12 shrink-0 items-center rounded-full border p-0.5 transition-colors disabled:cursor-not-allowed disabled:opacity-50",
           checked
-            ? "border-brand-400/70 bg-brand-600 shadow-lg shadow-brand-600/20"
+            ? "border-ink bg-ink shadow-lg shadow-black/20"
             : "border-line bg-soft hover:bg-soft",
         ].join(" "),
         disabled,
@@ -49,7 +49,7 @@ export function SwitchField({
       createElement("span", {
         "aria-hidden": true,
         className: [
-          "h-6 w-6 rounded-full bg-white shadow-sm transition-transform motion-reduce:transition-none",
+          "h-6 w-6 rounded-full bg-canvas shadow-sm transition-transform motion-reduce:transition-none",
           checked ? "translate-x-5" : "translate-x-0",
         ].join(" "),
       }),

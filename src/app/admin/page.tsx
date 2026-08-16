@@ -40,7 +40,7 @@ export default async function AdminDashboardPage() {
         </div>
         <Link
           href="/admin/upload"
-          className="flex items-center gap-2 rounded-lg bg-ink px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2"
+          className="flex items-center gap-2 rounded-lg bg-ink px-5 py-2.5 text-sm font-semibold text-canvas transition-colors hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2"
         >
           <Plus className="h-4 w-4" />
           Upload Track
@@ -100,9 +100,9 @@ export default async function AdminDashboardPage() {
           <Link
             key={item.href}
             href={item.href}
-            className="group flex items-center gap-4 rounded-xl border border-line bg-white p-5 transition-colors hover:border-ink hover:bg-panel focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2"
+            className="group flex items-center gap-4 rounded-xl border border-line bg-canvas p-5 transition-colors hover:border-ink hover:bg-panel focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2"
           >
-            <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-soft text-ink transition-colors group-hover:bg-white">
+            <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-soft text-ink transition-colors group-hover:bg-canvas">
               <item.icon className="h-5 w-5" />
             </div>
             <div>
@@ -114,7 +114,7 @@ export default async function AdminDashboardPage() {
       </div>
 
       {/* Track List */}
-      <div className="overflow-hidden rounded-xl border border-line bg-white">
+      <div className="overflow-hidden rounded-xl border border-line bg-canvas">
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line p-6">
           <h2 className="text-lg font-semibold text-ink">Your Tracks</h2>
           <span className="text-xs text-muted">
@@ -135,7 +135,7 @@ export default async function AdminDashboardPage() {
             </p>
             <Link
               href="/admin/upload"
-              className="flex items-center gap-2 rounded-lg bg-ink px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2"
+              className="flex items-center gap-2 rounded-lg bg-ink px-5 py-2.5 text-sm font-semibold text-canvas transition-colors hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2"
             >
               <Upload className="h-4 w-4" />
               Upload Track

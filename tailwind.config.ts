@@ -1,17 +1,18 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
+  darkMode: "class",
   content: ["./src/**/*.{js,ts,jsx,tsx,mdx}"],
   theme: {
     extend: {
       colors: {
-        canvas: "#ffffff",
-        panel: "#fafafa",
-        soft: "#f7f7f7",
-        line: "#dedede",
-        ink: "#101010",
-        muted: "#666666",
-        faint: "#8a8a8a",
+        canvas: "rgb(var(--color-canvas) / <alpha-value>)",
+        panel: "rgb(var(--color-panel) / <alpha-value>)",
+        soft: "rgb(var(--color-soft) / <alpha-value>)",
+        line: "rgb(var(--color-line) / <alpha-value>)",
+        ink: "rgb(var(--color-ink) / <alpha-value>)",
+        muted: "rgb(var(--color-muted) / <alpha-value>)",
+        faint: "rgb(var(--color-faint) / <alpha-value>)",
         brand: {
           50: "#f7f7f7",
           100: "#eeeeee",

@@ -200,7 +200,7 @@ export function DatePicker({ label, name, value, onChange, disabled = false }: D
         {
           "aria-labelledby": `${dialogId}-label`,
           className:
-            "upload-calendar-popover absolute z-50 mt-2 w-[20rem] rounded-2xl border border-line bg-white p-4 text-ink shadow-2xl shadow-black/10",
+            "upload-calendar-popover absolute z-50 mt-2 w-[20rem] rounded-2xl border border-line bg-canvas p-4 text-ink shadow-2xl shadow-black/10",
           id: dialogId,
           onKeyDown: (event: KeyboardEvent<HTMLDivElement>) => {
             if (event.key === "Escape") {
@@ -300,7 +300,7 @@ export function DatePicker({ label, name, value, onChange, disabled = false }: D
                       className: [
                         "upload-control-focus h-9 w-full rounded-lg text-sm transition",
                         isSelected
-                          ? "bg-brand-600 font-semibold text-white shadow-lg shadow-brand-600/20"
+                          ? "bg-ink font-semibold text-canvas shadow-lg shadow-black/20"
                           : "text-ink hover:bg-soft",
                         day.isCurrentMonth ? "" : "text-muted hover:text-muted",
                       ]
@@ -351,7 +351,7 @@ export function DatePicker({ label, name, value, onChange, disabled = false }: D
           ref: triggerRef,
           type: "button",
         },
-        createElement(CalendarDays, { "aria-hidden": true, className: "h-4 w-4 shrink-0 text-brand-300" }),
+        createElement(CalendarDays, { "aria-hidden": true, className: "h-4 w-4 shrink-0 text-faint" }),
         createElement("span", { className: normalizedValue ? "text-ink" : "text-muted" }, displayValue),
       ),
       normalizedValue

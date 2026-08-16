@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "decision": "pending",
+  "candidate": {
+    "commit": "",
+    "image": "",
+    "imageDigest": "",
+    "migrations": []
+  },
+  "evidence": {
+    "sourceCheckPassed": false,
+    "containerCheckPassed": false,
+    "backupId": "",
+    "restoreTestPassed": false,
+    "publicUrl": ""
+  },
+  "externalGates": {
+    "historicalCredentialsRotated": false,
+    "httpsConfigured": false,
+    "identityAllowlistConfigured": false,
+    "openBetaExceptionApproved": false,
+    "httpsAndIdentityAllowlistConfigured": false,
+    "ingressRateLimitsConfigured": false,
+    "diskAndBackupMonitoringConfigured": false,
+    "legalReviewApproved": false,
+    "legalReviewWaivedForOpenBeta": false,
+    "inviteListApproved": false,
+    "inviteListWaivedForOpenBeta": false
+  },
+  "approvals": {
+    "operator": "",
+    "supportOwner": "",
+    "monitoringOwner": "",
+    "rateLimitOwner": "",
+    "legalReviewer": "",
+    "reviewedAt": ""
+  }
+}

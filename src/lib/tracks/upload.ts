@@ -22,6 +22,7 @@ import {
   type CurrentActorDependencies,
 } from "@/lib/auth/actor";
 import { parseAlbumMembership, type AlbumMembership } from "./upload-membership";
+import { errorMessage, logEvent } from "@/lib/log";
 
 export class TrackUploadError extends Error {
   constructor(
@@ -249,7 +250,18 @@ export async function createTrackFromUpload(
 
     return { trackId: result.id, position: membership?.position ?? null };
   } catch (error) {
-    await Promise.all(writtenAbsPaths.map((path) => unlink(path).catch(() => {})));
+    await Promise.all(writtenAbsPaths.map(async (path) => {
+      try {
+        await unlink(path);
+      } catch (cleanupError) {
+        if ((cleanupError as NodeJS.ErrnoException).code !== "ENOENT") {
+          logEvent("warn", "upload.track.cleanup_failed", {
+            creatorId,
+            message: errorMessage(cleanupError),
+          });
+        }
+      }
+    }));
 
     if (error instanceof TrackUploadError) throw error;
     // P2002 is the Prisma unique constraint violation – a concurrent duplicate
@@ -276,7 +288,10 @@ export async function createTrackFromUpload(
         return { trackId: raced.id, position };
       }
     }
-    console.error("Track upload failed", error);
+    logEvent("error", "upload.track.persistence_failed", {
+      message: errorMessage(error),
+      creatorId,
+    });
     throw new TrackUploadError("Upload failed. Please try again.", 500);
   }
 }

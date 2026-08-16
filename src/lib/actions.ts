@@ -7,7 +7,8 @@ import { unlink, writeFile } from "fs/promises";
 import { join } from "path";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
-import { authOptions } from "@/lib/auth";
+import { APPROVAL_ADMIN_EMAIL, authOptions } from "@/lib/auth";
+import { parseRegistration } from "@/lib/auth/registration";
 import { ensureUploadDir, publicUrl, resolvePublicPath, uniqueFileName } from "@/lib/audio/storage";
 import { sanitizeBaseName, validateImageFile } from "@/lib/audio/validate";
 import { probeDurationSec } from "@/lib/audio/ffmpeg";
@@ -19,10 +20,29 @@ import {
 } from "@/lib/audio/enhance";
 import { createTrackFromUpload } from "@/lib/tracks/upload";
 import { shouldDeleteSharedCover } from "@/lib/releases/cover";
+import { errorMessage, logEvent } from "@/lib/log";
+import { withProcessingSlot } from "@/lib/processing-limit";
+
+async function removeFile(path: string, context: Record<string, string>) {
+  try {
+    await unlink(path);
+  } catch (error) {
+    const code = (error as NodeJS.ErrnoException).code;
+    if (code !== "ENOENT") {
+      logEvent("warn", "media.cleanup_failed", {
+        ...context,
+        code,
+        message: errorMessage(error),
+      });
+    }
+  }
+}
 
 async function requireUser() {
   const session = await getServerSession(authOptions);
-  if (!session) redirect("/admin/login");
+  if (!session || session.user.authInvalidated || !session.user.id) {
+    redirect("/admin/login");
+  }
   return session;
 }
 
@@ -30,6 +50,17 @@ async function requireCreator() {
   const session = await requireUser();
   if (session.user.role !== "CREATOR" && session.user.role !== "ADMIN") {
     throw new Error("A creator account is required for this action.");
+  }
+  return session;
+}
+
+async function requireApprovalAdmin() {
+  const session = await requireUser();
+  if (
+    session.user.role !== "ADMIN" ||
+    session.user.email?.trim().toLowerCase() !== APPROVAL_ADMIN_EMAIL
+  ) {
+    throw new Error("Only the designated administrator can manage account requests.");
   }
   return session;
 }
@@ -64,24 +95,7 @@ async function requireTrackOwner(trackId: string) {
 }
 
 export async function registerUser(formData: FormData) {
-  const name = String(formData.get("name") || "").trim();
-  const email = String(formData.get("email") || "").trim().toLowerCase();
-  const password = String(formData.get("password") || "");
-  const role = String(formData.get("role") || "LISTENER").toUpperCase();
-
-  if (!name || !email || password.length < 8) {
-    throw new Error("Name, email, and an 8 character password are required.");
-  }
-  if (name.length > 100) throw new Error("Display name is too long.");
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    throw new Error("Enter a valid email address.");
-  }
-  if (Buffer.byteLength(password, "utf8") > 72) {
-    throw new Error("Password must be 72 bytes or fewer.");
-  }
-  if (role !== "LISTENER" && role !== "CREATOR") {
-    throw new Error("Choose a listener or creator account.");
-  }
+  const { name, email, password, role, approved } = parseRegistration(formData);
 
   const existingUser = await prisma.user.findUnique({ where: { email } });
   const existingAdmin = await prisma.admin.findUnique({ where: { email } });
@@ -95,15 +109,25 @@ export async function registerUser(formData: FormData) {
       email,
       password: await bcrypt.hash(password, 10),
       role,
+      approved,
     },
   });
 
-  redirect("/admin/login?registered=1");
+  redirect(`/admin/login?registered=${role.toLowerCase()}`);
+}
+
+export async function approveUser(userId: string) {
+  await requireApprovalAdmin();
+  await prisma.user.update({
+    where: { id: userId },
+    data: { approved: true, sessionVersion: { increment: 1 } },
+  });
+  revalidatePath("/admin/requests");
 }
 
 export async function uploadTrack(formData: FormData) {
   const session = await requireCreator();
-  await createTrackFromUpload(formData, session);
+  await withProcessingSlot(() => createTrackFromUpload(formData, session));
 
   revalidatePath("/");
   revalidatePath("/browse");
@@ -168,12 +192,12 @@ export async function deleteTrack(id: string) {
   await Promise.all(
     [...audioUrls].map(async (url) => {
       const path = resolvePublicPath(url);
-      if (path) await unlink(path).catch(() => {});
+      if (path) await removeFile(path, { operation: "delete_track_audio", trackId: id });
     })
   );
 
   // The cover may be shared with other tracks or a release; reference-count it.
-  if (track.coverUrl?.startsWith("/uploads/covers/")) {
+  if (track.coverUrl) {
     const [remainingReleaseReferences, remainingTrackReferences] = await Promise.all([
       prisma.release.count({ where: { coverUrl: track.coverUrl } }),
       prisma.track.count({ where: { coverUrl: track.coverUrl } }),
@@ -184,7 +208,7 @@ export async function deleteTrack(id: string) {
       remainingTrackReferences
     )) {
       const coverPath = resolvePublicPath(track.coverUrl);
-      if (coverPath) await unlink(coverPath).catch(() => {});
+      if (coverPath) await removeFile(coverPath, { operation: "delete_track_cover", trackId: id });
     }
   }
 
@@ -347,13 +371,13 @@ export async function updateCreatorProfile(formData: FormData) {
       },
     });
   } catch (error) {
-    if (newAvatarPath) await unlink(newAvatarPath).catch(() => {});
+    if (newAvatarPath) await removeFile(newAvatarPath, { operation: "rollback_avatar", userId });
     throw error;
   }
 
   if (existingUser?.avatarUrl && existingUser.avatarUrl !== nextAvatarUrl) {
     const oldAvatarPath = resolvePublicPath(existingUser.avatarUrl);
-    if (oldAvatarPath) await unlink(oldAvatarPath).catch(() => {});
+    if (oldAvatarPath) await removeFile(oldAvatarPath, { operation: "replace_avatar", userId });
   }
 
   revalidatePath("/admin/profile");
@@ -431,7 +455,7 @@ export async function analyzeTrack(trackId: string, versionId?: string) {
 
   try {
     if (!abs) throw new Error("No audio file available to analyze.");
-    const result = await analyzeAudioFile(abs);
+    const result = await withProcessingSlot(() => analyzeAudioFile(abs));
 
     const analysis = await prisma.audioAnalysis.create({
       data: {
@@ -462,6 +486,7 @@ export async function analyzeTrack(trackId: string, versionId?: string) {
         result: JSON.stringify({ analysisId: analysis.id }),
       },
     });
+    logEvent("info", "processing.analysis.completed", { jobId: job.id, trackId });
 
     revalidatePath(`/track/${trackId}`);
     revalidatePath("/admin");
@@ -474,6 +499,11 @@ export async function analyzeTrack(trackId: string, versionId?: string) {
         finishedAt: new Date(),
         error: err instanceof Error ? err.message : "Analysis failed.",
       },
+    });
+    logEvent("error", "processing.analysis.failed", {
+      jobId: job.id,
+      trackId,
+      message: errorMessage(err),
     });
     throw err;
   }
@@ -515,7 +545,7 @@ export async function enhanceTrack(
   let producedUrl: string | null = null;
   try {
     if (!sourceAbs) throw new Error("No source audio file available to enhance.");
-    const out = await enhanceAudioFile(sourceAbs, preset);
+    const out = await withProcessingSlot(() => enhanceAudioFile(sourceAbs, preset));
     producedUrl = out.url;
 
     const version = await prisma.audioVersion.create({
@@ -543,6 +573,7 @@ export async function enhanceTrack(
         result: JSON.stringify({ audioVersionId: version.id, url: out.url }),
       },
     });
+    logEvent("info", "processing.enhancement.completed", { jobId: job.id, trackId });
 
     revalidatePath(`/track/${trackId}`);
     revalidatePath("/admin");
@@ -551,7 +582,7 @@ export async function enhanceTrack(
     // Clean up a partially-written enhanced file on failure.
     if (producedUrl) {
       const p = resolvePublicPath(producedUrl);
-      if (p) await unlink(p).catch(() => {});
+      if (p) await removeFile(p, { operation: "rollback_enhancement", trackId });
     }
     await prisma.processingJob.update({
       where: { id: job.id },
@@ -560,6 +591,11 @@ export async function enhanceTrack(
         finishedAt: new Date(),
         error: err instanceof Error ? err.message : "Enhancement failed.",
       },
+    });
+    logEvent("error", "processing.enhancement.failed", {
+      jobId: job.id,
+      trackId,
+      message: errorMessage(err),
     });
     throw err;
   }
@@ -702,7 +738,7 @@ export async function deleteRelease(releaseId: string) {
   const { release } = await requireReleaseOwner(releaseId);
   await prisma.release.delete({ where: { id: releaseId } });
 
-  if (release.coverUrl?.startsWith("/uploads/covers/")) {
+  if (release.coverUrl) {
     const [remainingReleaseReferences, remainingTrackReferences] = await Promise.all([
       prisma.release.count({ where: { coverUrl: release.coverUrl } }),
       prisma.track.count({ where: { coverUrl: release.coverUrl } }),
@@ -713,7 +749,7 @@ export async function deleteRelease(releaseId: string) {
       remainingTrackReferences
     )) {
       const coverPath = resolvePublicPath(release.coverUrl);
-      if (coverPath) await unlink(coverPath).catch(() => {});
+      if (coverPath) await removeFile(coverPath, { operation: "delete_release_cover", releaseId });
     }
   }
 

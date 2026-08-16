@@ -1,0 +1,12 @@
+.env*
+!.env.example
+.git
+.next*
+node_modules
+prisma/*.db*
+public/uploads/audio
+public/uploads/enhanced
+public/uploads/covers/*
+storage
+backups
+npm-debug.log*

@@ -112,7 +112,7 @@ export default function TrackDetailPage({
             <div className="flex flex-wrap items-center gap-3 mt-2">
               <button
                 onClick={handlePlay}
-                className="flex items-center gap-3 rounded-xl bg-ink px-8 py-3.5 text-base font-semibold text-white shadow-lg shadow-black/10 transition-all hover:scale-105 hover:bg-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2"
+                className="flex items-center gap-3 rounded-xl bg-ink px-8 py-3.5 text-base font-semibold text-canvas shadow-lg shadow-black/10 transition-all hover:scale-105 hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2"
               >
                 {isPlaying ? (
                   <>
@@ -129,7 +129,7 @@ export default function TrackDetailPage({
               {signedIn ? (
                 <LikeButton trackId={track.id} liked={liked} count={likeCount} />
               ) : (
-                <Link href="/admin/login" className="rounded-xl border border-line bg-white px-4 py-3 text-sm font-semibold text-ink hover:bg-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2">
+                <Link href="/admin/login" className="rounded-xl border border-line bg-canvas px-4 py-3 text-sm font-semibold text-ink hover:bg-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2">
                   Sign in to like
                 </Link>
               )}
@@ -137,7 +137,7 @@ export default function TrackDetailPage({
                 <a
                   href={`/api/tracks/${track.id}/download`}
                   download
-                  className="inline-flex items-center gap-2 rounded-xl border border-line bg-white px-4 py-3 text-sm font-semibold text-ink hover:bg-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2"
+                  className="inline-flex items-center gap-2 rounded-xl border border-line bg-canvas px-4 py-3 text-sm font-semibold text-ink hover:bg-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2"
                 >
                   <Download className="h-4 w-4" />
                   Download
@@ -164,7 +164,7 @@ export default function TrackDetailPage({
                   <div className="text-sm font-semibold text-ink">{comment.user.name}</div>
                   <p className="mt-1 text-sm leading-relaxed text-muted">
                     {comment.timestampSeconds !== null && comment.timestampSeconds !== undefined && (
-                      <button type="button" onClick={() => player.seek(comment.timestampSeconds!)} className="mr-2 rounded-full bg-soft px-2 py-0.5 font-mono text-xs text-ink hover:bg-[#eeeeee] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink">
+                      <button type="button" onClick={() => player.seek(comment.timestampSeconds!)} className="mr-2 rounded-full bg-soft px-2 py-0.5 font-mono text-xs text-ink hover:bg-panel focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink">
                         {formatDuration(comment.timestampSeconds)}
                       </button>
                     )}

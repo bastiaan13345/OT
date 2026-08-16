@@ -89,7 +89,7 @@ export async function POST(request: Request) {
 
   // Optional listener attribution — anonymous plays are allowed.
   const session = await getServerSession(authOptions);
-  const userId = session?.user?.id ?? null;
+  const userId = session?.user?.authInvalidated ? null : session?.user?.id || null;
 
   // Upsert progress. playedSeconds is kept monotonic (never regresses) so late,
   // out-of-order beacons cannot lower a session's high-water mark.

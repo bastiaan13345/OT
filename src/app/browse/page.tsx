@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import BrowsePage from "@/components/BrowsePage";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 export default async function Page() {
   const tracks = await prisma.track.findMany({
