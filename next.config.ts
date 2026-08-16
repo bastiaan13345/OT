@@ -2,10 +2,18 @@ import type { NextConfig } from "next";
 import { PHASE_DEVELOPMENT_SERVER } from "next/constants";
 
 export default function nextConfig(phase: string): NextConfig {
+  const isCloudflareBuild = process.env.INFINI_BUILD_TARGET === "cloudflare";
+
   return {
     poweredByHeader: false,
-    // OpenNext requires the standard production artifact directory.
-    distDir: phase === PHASE_DEVELOPMENT_SERVER ? ".next-dev" : ".next",
+    output: isCloudflareBuild ? undefined : "standalone",
+    // OpenNext requires .next; the Docker image copies the standalone .next-build output.
+    distDir:
+      phase === PHASE_DEVELOPMENT_SERVER
+        ? ".next-dev"
+        : isCloudflareBuild
+          ? ".next"
+          : ".next-build",
     experimental: {
       serverActions: {
         bodySizeLimit: "320mb",
