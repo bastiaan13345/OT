@@ -53,7 +53,7 @@ export function AlbumCarousel({ tracks }: { tracks: Track[] }) {
   if (!tracks.length) return null;
 
   return (
-    <section className="relative -mx-5 overflow-hidden border-y border-line bg-white py-10 sm:-mx-8 lg:-mx-10 lg:py-14">
+    <section className="relative -mx-5 overflow-hidden border-y border-line bg-canvas py-10 sm:-mx-8 lg:-mx-10 lg:py-14">
       <div className="relative mb-7 flex items-end justify-between px-5 sm:px-8 lg:px-10">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted">On rotation</p>
@@ -62,10 +62,10 @@ export function AlbumCarousel({ tracks }: { tracks: Track[] }) {
           </h2>
         </div>
         <div className="hidden gap-2 sm:flex">
-          <button onClick={() => goTo(activeIndex - 1)} className="flex h-11 w-11 items-center justify-center rounded-full border border-line bg-white text-ink transition hover:border-ink hover:bg-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2" aria-label="Previous album">
+          <button onClick={() => goTo(activeIndex - 1)} className="flex h-11 w-11 items-center justify-center rounded-full border border-line bg-canvas text-ink transition hover:border-ink hover:bg-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2" aria-label="Previous album">
             <ArrowLeft className="h-4 w-4" />
           </button>
-          <button onClick={() => goTo(activeIndex + 1)} className="flex h-11 w-11 items-center justify-center rounded-full border border-line bg-white text-ink transition hover:border-ink hover:bg-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2" aria-label="Next album">
+          <button onClick={() => goTo(activeIndex + 1)} className="flex h-11 w-11 items-center justify-center rounded-full border border-line bg-canvas text-ink transition hover:border-ink hover:bg-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2" aria-label="Next album">
             <ArrowRight className="h-4 w-4" />
           </button>
         </div>
@@ -75,7 +75,7 @@ export function AlbumCarousel({ tracks }: { tracks: Track[] }) {
         {tracks.map((track, index) => {
           const isPlaying = player.currentTrack?.id === track.id && player.isPlaying;
           return (
-            <article key={track.id} data-carousel-card data-index={index} className="carousel-card group relative w-[82vw] max-w-[880px] flex-none snap-center overflow-hidden rounded-[1.75rem] border border-line bg-white shadow-xl shadow-black/10 sm:w-[72vw] lg:w-[62vw]">
+            <article key={track.id} data-carousel-card data-index={index} className="carousel-card group relative w-[82vw] max-w-[880px] flex-none snap-center overflow-hidden rounded-[1.75rem] border border-line bg-canvas shadow-xl shadow-black/10 sm:w-[72vw] lg:w-[62vw]">
               <div className="grid min-h-[390px] md:grid-cols-[1.05fr_0.95fr]">
                 <div className="relative aspect-square overflow-hidden bg-soft md:aspect-auto">
                   {track.coverUrl ? (
@@ -92,15 +92,15 @@ export function AlbumCarousel({ tracks }: { tracks: Track[] }) {
                       <span>{track.genre || "New release"}</span>
                     </div>
                     <p className="text-sm text-muted">{track.album || "Single"}</p>
-                    <Link href={`/track/${track.id}`} className="rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink"><h3 className="mt-2 text-4xl font-semibold leading-[0.95] tracking-[-0.05em] text-ink transition hover:text-black sm:text-5xl lg:text-6xl">{track.title}</h3></Link>
+                    <Link href={`/track/${track.id}`} className="rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink"><h3 className="mt-2 text-4xl font-semibold leading-[0.95] tracking-[-0.05em] text-ink transition hover:text-ink sm:text-5xl lg:text-6xl">{track.title}</h3></Link>
                     <p className="mt-4 text-lg text-muted">{track.artist}</p>
                     {track.description && <p className="mt-6 line-clamp-3 max-w-md text-sm leading-6 text-muted">{track.description}</p>}
                   </div>
                   <div className="mt-10 flex items-center gap-4">
-                    <button onClick={() => toggleTrack(track, index)} className="flex h-14 w-14 items-center justify-center rounded-full bg-ink text-white shadow-xl shadow-black/10 transition hover:scale-105 hover:bg-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2" aria-label={isPlaying ? `Pause ${track.title}` : `Play ${track.title}`}>
+                    <button onClick={() => toggleTrack(track, index)} className="flex h-14 w-14 items-center justify-center rounded-full bg-ink text-canvas shadow-xl shadow-black/10 transition hover:scale-105 hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2" aria-label={isPlaying ? `Pause ${track.title}` : `Play ${track.title}`}>
                       {isPlaying ? <Pause className="h-5 w-5 fill-current" /> : <Play className="ml-0.5 h-5 w-5 fill-current" />}
                     </button>
-                    <Link href={`/track/${track.id}`} className="rounded-sm text-sm font-medium text-ink transition hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink">View track</Link>
+                    <Link href={`/track/${track.id}`} className="rounded-sm text-sm font-medium text-ink transition hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink">View track</Link>
                   </div>
                 </div>
               </div>

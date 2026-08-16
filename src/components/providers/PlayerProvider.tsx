@@ -80,7 +80,7 @@ function createPlaybackId() {
 }
 
 function getDefaultSource(label?: string) {
-  return label && label.trim() ? label.trim() : "OpenTunes";
+  return label && label.trim() ? label.trim() : "Infini";
 }
 
 function telemetrySource(label: string) {
@@ -124,7 +124,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const [shuffle, setShuffle] = useState(false);
   const [repeatMode, setRepeatMode] = useState<RepeatMode>("off");
   const [queueOpen, setQueueOpen] = useState(false);
-  const [sourceLabel, setSourceLabel] = useState("OpenTunes");
+  const [sourceLabel, setSourceLabel] = useState("Infini");
 
   const currentTrack = queue[currentIndex] ?? null;
 
@@ -171,7 +171,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         playbackId,
         trackId: track.id,
         source: telemetrySource(
-          playbackContextRef.current?.source.label ?? "OpenTunes"
+          playbackContextRef.current?.source.label ?? "Infini"
         ),
         playedSeconds,
         completed,
@@ -640,7 +640,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     mediaSession.metadata = new MediaMetadata({
       title: currentTrack.title,
       artist: currentTrack.artist,
-      album: currentTrack.album ?? "OpenTunes",
+      album: currentTrack.album ?? "Infini",
       artwork: currentTrack.coverUrl
         ? [{ src: currentTrack.coverUrl, sizes: "512x512", type: "image/jpeg" }]
         : undefined,

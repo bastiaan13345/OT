@@ -71,12 +71,12 @@ export default async function PlaylistPage({ params }: PlaylistPageProps) {
       <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
         <section>
           {tracks.length ? (
-            <div className="divide-y divide-line rounded-xl border border-line bg-white">
+            <div className="divide-y divide-line rounded-xl border border-line bg-canvas">
               {tracks.map((track, index) => (
                 <div key={track.id} className="flex items-center gap-4 p-4 transition-colors hover:bg-panel">
                   <div className="w-6 text-right text-sm text-muted">{index + 1}</div>
                   <div className="min-w-0 flex-1">
-                    <Link href={`/track/${track.id}`} className="truncate rounded-sm font-medium text-ink hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink">
+                    <Link href={`/track/${track.id}`} className="truncate rounded-sm font-medium text-ink hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink">
                       {track.title}
                     </Link>
                     <p className="truncate text-sm text-muted">{track.artist}</p>

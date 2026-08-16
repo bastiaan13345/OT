@@ -71,7 +71,7 @@ export async function GET(
   }: { params: Promise<{ id: string; versionId: string }> }
 ) {
   const session = await getServerSession(authOptions);
-  if (!session) {
+  if (!session || session.user.authInvalidated || !session.user.id) {
     return NextResponse.json({ error: "Authentication required." }, { status: 401 });
   }
 

@@ -21,12 +21,12 @@ export function PlaylistControls({ playlist }: PlaylistControlsProps) {
       <form action={updatePlaylist.bind(null, playlist.id)} className="mt-4 grid gap-3">
         <Input name="name" defaultValue={playlist.name} placeholder="Playlist name" required />
         <Input name="description" defaultValue={playlist.description ?? ""} placeholder="Description" />
-        <label className="flex items-center gap-3 rounded-lg border border-line bg-white px-4 py-3 text-sm text-muted">
+        <label className="flex items-center gap-3 rounded-lg border border-line bg-canvas px-4 py-3 text-sm text-muted">
           <input
             type="checkbox"
             name="public"
             defaultChecked={playlist.public}
-            className="h-4 w-4 rounded border-line bg-white accent-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2"
+            className="h-4 w-4 rounded border-line bg-canvas accent-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2"
           />
           Public playlist
         </label>

@@ -6,6 +6,16 @@ node_modules/
 *.tsbuildinfo
 .DS_Store
 
+# Local and production secrets/state
+.env*
+!.env.example
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+backups/
+release-record.json
+
 # Generated local audio storage
 storage/audio/
 storage/enhanced/

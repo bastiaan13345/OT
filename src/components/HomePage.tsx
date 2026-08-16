@@ -13,7 +13,7 @@ export default function HomePage({ featuredTracks, recentTracks, stats }: HomePa
   return <div className="mx-auto max-w-[1500px] px-5 py-8 sm:px-8 lg:px-10">
     <header className="mb-12 flex items-end justify-between border-b border-line pb-5">
       <div><p className="mb-1 text-sm text-muted">Listen now</p><h1 className="text-4xl font-semibold tracking-[-0.045em] text-ink sm:text-6xl">Home</h1></div>
-      <Link href="/browse" className="hidden items-center gap-2 rounded-full border border-line bg-white px-4 py-2 text-sm text-ink transition hover:border-ink hover:bg-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 sm:flex"><Sparkles className="h-4 w-4" /> Discover something new</Link>
+      <Link href="/browse" className="hidden items-center gap-2 rounded-full border border-line bg-canvas px-4 py-2 text-sm text-ink transition hover:border-ink hover:bg-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 sm:flex"><Sparkles className="h-4 w-4" /> Discover something new</Link>
     </header>
 
     <AlbumCarousel tracks={carouselTracks} />
@@ -25,6 +25,6 @@ export default function HomePage({ featuredTracks, recentTracks, stats }: HomePa
       { href: "/history", icon: Clock3, title: "Recently Played", copy: "Continue where you stopped" },
       { href: "/library", icon: ListMusic, title: "All Playlists", copy: "Collections for every mood" },
       { href: "/feed", icon: Radio, title: "Radio & Feed", copy: `${stats.artists} artists sharing new music` },
-    ].map(({ href, icon: Icon, title, copy }) => <Link key={title} href={href} className="group flex items-center gap-4 rounded-2xl border border-line bg-white p-4 transition hover:border-ink hover:bg-panel focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2"><div className="flex h-11 w-11 items-center justify-center rounded-xl bg-soft text-ink"><Icon className="h-5 w-5" /></div><div><p className="text-sm font-semibold text-ink">{title}</p><p className="mt-0.5 text-xs text-muted">{copy}</p></div></Link>)}</div></section>
+    ].map(({ href, icon: Icon, title, copy }) => <Link key={title} href={href} className="group flex items-center gap-4 rounded-2xl border border-line bg-canvas p-4 transition hover:border-ink hover:bg-panel focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2"><div className="flex h-11 w-11 items-center justify-center rounded-xl bg-soft text-ink"><Icon className="h-5 w-5" /></div><div><p className="text-sm font-semibold text-ink">{title}</p><p className="mt-0.5 text-xs text-muted">{copy}</p></div></Link>)}</div></section>
   </div>;
 }

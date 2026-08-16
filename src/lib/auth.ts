@@ -2,6 +2,9 @@ import { type NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
+import { refreshVersionedToken } from "@/lib/auth/session-version";
+
+export const APPROVAL_ADMIN_EMAIL = "fagatronous@gmail.com";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -29,11 +32,17 @@ export const authOptions: NextAuthOptions = {
           );
           if (!isValid) return null;
 
+          if (!user.approved) {
+            throw new Error("PENDING_APPROVAL");
+          }
+
           return {
             id: user.id,
             email: user.email,
             name: user.name,
             role: user.role,
+            accountType: "user",
+            sessionVersion: user.sessionVersion,
           };
         }
 
@@ -49,7 +58,13 @@ export const authOptions: NextAuthOptions = {
         );
         if (!isValid) return null;
 
-        return { id: admin.id, email: admin.email, role: "ADMIN" };
+        return {
+          id: admin.id,
+          email: admin.email,
+          role: "ADMIN",
+          accountType: "admin",
+          sessionVersion: admin.sessionVersion,
+        };
       },
     }),
   ],
@@ -62,13 +77,26 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.id = user.id;
         token.role = user.role || "LISTENER";
+        token.accountType = user.accountType;
+        token.sessionVersion = user.sessionVersion;
+        token.authInvalidated = false;
       }
-      return token;
+      return refreshVersionedToken(token, {
+        findUser: (id) => prisma.user.findUnique({
+          where: { id },
+          select: { role: true, sessionVersion: true },
+        }),
+        findAdmin: (id) => prisma.admin.findUnique({
+          where: { id },
+          select: { sessionVersion: true },
+        }),
+      });
     },
     async session({ session, token }) {
       if (token && session.user) {
         session.user.id = token.id as string;
         session.user.role = token.role as string;
+        session.user.authInvalidated = token.authInvalidated === true;
       }
       return session;
     },

@@ -85,7 +85,7 @@ export function TrackUploadRow(props: TrackUploadRowProps) {
             value={resolved.title ?? ""}
             disabled={disabled || row.status === "uploaded"}
             maxLength={200}
-            className="mt-1 w-full rounded-lg border border-line bg-white px-3 py-2 text-sm text-ink transition upload-control-focus disabled:opacity-50"
+            className="mt-1 w-full rounded-lg border border-line bg-canvas px-3 py-2 text-sm text-ink transition upload-control-focus disabled:opacity-50"
             onChange={(e) => updateHeaderPatch({ title: e.target.value })}
           />
 
@@ -166,7 +166,7 @@ export function TrackUploadRow(props: TrackUploadRowProps) {
                   value={resolved.description ?? ""}
                   disabled={disabled}
                   rows={2}
-                  className="w-full rounded-lg border border-line bg-white px-3 py-2 text-sm text-ink transition upload-control-focus disabled:opacity-50"
+                  className="w-full rounded-lg border border-line bg-canvas px-3 py-2 text-sm text-ink transition upload-control-focus disabled:opacity-50"
                   onChange={(e) => updateHeaderPatch({ description: e.target.value })}
                   style={{ colorScheme: "light" }}
                 />
@@ -179,7 +179,7 @@ export function TrackUploadRow(props: TrackUploadRowProps) {
         {row.status === "failed" && (
           <button
             type="button"
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-line bg-white px-3 py-2 text-sm text-ink transition hover:bg-soft upload-control-focus"
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-line bg-canvas px-3 py-2 text-sm text-ink transition hover:bg-soft upload-control-focus"
             onClick={() => onRetry(row.clientId)}
           >
             <RefreshCw className="h-4 w-4" aria-hidden />

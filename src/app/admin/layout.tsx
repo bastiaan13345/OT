@@ -9,14 +9,30 @@ import {
   Disc3,
   Settings2,
 } from "lucide-react";
+import { getServerSession } from "next-auth";
+import { redirect } from "next/navigation";
+import { authOptions, APPROVAL_ADMIN_EMAIL } from "@/lib/auth";
 
-export default function AdminLayout({
+export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const session = await getServerSession(authOptions);
+  if (
+    session &&
+    session.user.role !== "CREATOR" &&
+    session.user.role !== "ADMIN"
+  ) {
+    redirect("/library");
+  }
+
+  const canReviewRequests =
+    session?.user.role === "ADMIN" &&
+    session.user.email?.trim().toLowerCase() === APPROVAL_ADMIN_EMAIL;
   const navigation = [
     { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
+    ...(canReviewRequests ? [{ href: "/admin/requests", label: "Account requests", icon: UserCircle }] : []),
     { href: "/admin/upload", label: "Upload", icon: Upload },
     { href: "/admin/releases", label: "Releases", icon: Disc3 },
     { href: "/admin/analytics", label: "Analytics", icon: BarChart3 },
@@ -25,8 +41,8 @@ export default function AdminLayout({
   ];
 
   return (
-    <div className="min-h-screen bg-white">
-      <nav className="sticky top-16 z-30 flex items-center gap-1 overflow-x-auto border-b border-line bg-white/95 px-3 py-2 backdrop-blur-xl md:top-0">
+    <div className="min-h-screen bg-canvas">
+      <nav className="sticky top-16 z-30 flex items-center gap-1 overflow-x-auto border-b border-line bg-canvas/95 px-3 py-2 backdrop-blur-xl md:top-0">
         {navigation.map(({ href, label, icon: Icon }) => (
           <Link
             key={href}
@@ -54,7 +70,7 @@ export default function AdminLayout({
         </Link>
       </nav>
 
-      <div className="min-h-full bg-white">{children}</div>
+      <div className="min-h-full bg-canvas">{children}</div>
     </div>
   );
 }

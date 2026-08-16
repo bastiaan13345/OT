@@ -6,13 +6,32 @@
   :root {
     --font-geist-sans: "Geist Sans", system-ui, sans-serif;
     --font-geist-mono: "Geist Mono", monospace;
+    --color-canvas: 255 255 255;
+    --color-panel: 250 250 250;
+    --color-soft: 247 247 247;
+    --color-line: 222 222 222;
+    --color-ink: 16 16 16;
+    --color-muted: 102 102 102;
+    --color-faint: 138 138 138;
+    color-scheme: light;
+  }
+
+  :root.dark {
+    --color-canvas: 11 11 12;
+    --color-panel: 17 17 19;
+    --color-soft: 24 24 27;
+    --color-line: 58 58 63;
+    --color-ink: 244 244 245;
+    --color-muted: 175 175 182;
+    --color-faint: 140 140 148;
+    color-scheme: dark;
   }
 
   body {
-    @apply bg-canvas text-ink;
+    @apply bg-canvas text-ink transition-colors duration-200;
   }
 
-  ::selection { @apply bg-black text-white; }
+  ::selection { @apply bg-ink text-canvas; }
 }
 
 @layer utilities {
@@ -21,7 +40,7 @@
   }
 
   .glass {
-    @apply border border-line bg-white/90 backdrop-blur-2xl;
+    @apply border border-line bg-canvas/90 backdrop-blur-2xl;
   }
 }
 /* Keep horizontal album browsing tactile while hiding platform-specific rails. */
@@ -41,7 +60,7 @@
 }
 
 .carousel-card:is(:hover, :focus-within) {
-  border-color: rgba(16, 16, 16, 0.22);
+  border-color: rgb(var(--color-ink) / 0.22);
 }
 
 @supports (animation-timeline: view(inline)) {
@@ -71,12 +90,12 @@
   }
 }
 
-/* Upload and settings controls remain legible on light surfaces. */
+/* Native controls follow the active monochrome theme. */
 .upload-calendar-popover {
-  color-scheme: light;
+  color-scheme: inherit;
 }
 
 .upload-control-focus:focus-visible {
-  outline: 2px solid rgb(16 16 16);
+  outline: 2px solid rgb(var(--color-ink));
   outline-offset: 2px;
 }

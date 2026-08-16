@@ -89,7 +89,7 @@ export function AlbumDetailsPanel(props: AlbumDetailsPanelProps) {
             <button
               type="button"
               disabled={disabled}
-              className="rounded-lg border border-line bg-white px-3 py-2 text-sm text-ink transition hover:bg-soft upload-control-focus disabled:opacity-50"
+              className="rounded-lg border border-line bg-canvas px-3 py-2 text-sm text-ink transition hover:bg-soft upload-control-focus disabled:opacity-50"
               onClick={() => coverRef.current?.click()}
             >
               {props.coverFile ? "Change cover" : "Choose cover"}
@@ -120,7 +120,7 @@ export function AlbumDetailsPanel(props: AlbumDetailsPanelProps) {
             value={props.albumTitle}
             disabled={disabled}
             maxLength={200}
-            className="w-full rounded-lg border border-line bg-white px-4 py-2.5 text-sm text-ink transition upload-control-focus disabled:opacity-50"
+            className="w-full rounded-lg border border-line bg-canvas px-4 py-2.5 text-sm text-ink transition upload-control-focus disabled:opacity-50"
             onChange={(e) => props.onAlbumTitleChange(e.target.value)}
           />
         </div>
@@ -132,7 +132,7 @@ export function AlbumDetailsPanel(props: AlbumDetailsPanelProps) {
             id="album-type"
             value={props.albumType}
             disabled={disabled}
-            className="w-full rounded-lg border border-line bg-white px-4 py-2.5 text-sm text-ink transition upload-control-focus disabled:opacity-50"
+            className="w-full rounded-lg border border-line bg-canvas px-4 py-2.5 text-sm text-ink transition upload-control-focus disabled:opacity-50"
             style={{ colorScheme: "light" }}
             onChange={(e) => props.onAlbumTypeChange(e.target.value)}
           >
@@ -193,7 +193,7 @@ export function AlbumDetailsPanel(props: AlbumDetailsPanelProps) {
           value={props.shared.description ?? ""}
           disabled={disabled}
           rows={3}
-          className="w-full rounded-lg border border-line bg-white px-4 py-2.5 text-sm text-ink transition upload-control-focus disabled:opacity-50"
+          className="w-full rounded-lg border border-line bg-canvas px-4 py-2.5 text-sm text-ink transition upload-control-focus disabled:opacity-50"
           onChange={(e) => props.onSharedPatch({ description: e.target.value })}
         />
       </div>
@@ -218,13 +218,13 @@ export function AlbumDetailsPanel(props: AlbumDetailsPanelProps) {
               maxLength={80}
               placeholder="Preset name"
               disabled={disabled}
-              className="flex-1 rounded-lg border border-line bg-white px-4 py-2.5 text-sm text-ink transition upload-control-focus disabled:opacity-50"
+              className="flex-1 rounded-lg border border-line bg-canvas px-4 py-2.5 text-sm text-ink transition upload-control-focus disabled:opacity-50"
               onChange={(e) => setPresetName(e.target.value)}
             />
             <button
               type="button"
               disabled={disabled || !presetName.trim()}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-line bg-white px-3 py-2.5 text-sm font-medium text-ink transition hover:bg-soft upload-control-focus disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-line bg-canvas px-3 py-2.5 text-sm font-medium text-ink transition hover:bg-soft upload-control-focus disabled:opacity-50"
               onClick={savePreset}
             >
               <Save className="h-4 w-4" aria-hidden />
@@ -243,7 +243,7 @@ export function AlbumDetailsPanel(props: AlbumDetailsPanelProps) {
           id="concurrency"
           value={props.concurrency}
           disabled={disabled}
-          className="rounded-lg border border-line bg-white px-3 py-2 text-sm text-ink transition upload-control-focus disabled:opacity-50"
+          className="rounded-lg border border-line bg-canvas px-3 py-2 text-sm text-ink transition upload-control-focus disabled:opacity-50"
           style={{ colorScheme: "light" }}
           onChange={(e) => props.onConcurrencyChange(Number(e.target.value))}
         >

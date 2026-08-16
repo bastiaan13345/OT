@@ -16,7 +16,7 @@ export function ProfileAvatarField({ currentUrl }: { currentUrl?: string | null 
           {preview ? <Image src={preview} alt="Profile preview" fill sizes="112px" className="object-cover" unoptimized={preview.startsWith("blob:")} /> : <div className="flex h-full items-center justify-center"><UserRound className="h-10 w-10 text-faint" /></div>}
         </div>
         <div className="flex flex-wrap gap-3">
-          <label className="relative inline-flex cursor-pointer items-center gap-2 rounded-lg bg-ink px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-black has-[:focus-visible]:outline-none has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ink has-[:focus-visible]:ring-offset-2">
+          <label className="relative inline-flex cursor-pointer items-center gap-2 rounded-lg bg-ink px-4 py-2.5 text-sm font-semibold text-canvas transition hover:opacity-80 has-[:focus-visible]:outline-none has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ink has-[:focus-visible]:ring-offset-2">
             <Camera className="h-4 w-4" /> Choose image
             <input
               name="avatar"
@@ -31,7 +31,7 @@ export function ProfileAvatarField({ currentUrl }: { currentUrl?: string | null 
               }}
             />
           </label>
-          {preview && <button type="button" onClick={() => { setPreview(null); setRemoveAvatar(true); }} className="inline-flex items-center gap-2 rounded-lg border border-line bg-white px-4 py-2.5 text-sm text-muted transition hover:bg-soft hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2"><X className="h-4 w-4" /> Remove</button>}
+          {preview && <button type="button" onClick={() => { setPreview(null); setRemoveAvatar(true); }} className="inline-flex items-center gap-2 rounded-lg border border-line bg-canvas px-4 py-2.5 text-sm text-muted transition hover:bg-soft hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2"><X className="h-4 w-4" /> Remove</button>}
         </div>
       </div>
       <input type="hidden" name="removeAvatar" value={removeAvatar ? "true" : "false"} />

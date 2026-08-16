@@ -230,7 +230,16 @@ export async function createReleaseFromUpload(
     });
     return { releaseId: created.id, coverUrl: created.coverUrl };
   } catch (error) {
-    if (writtenCoverPath) await dependencies.unlink(writtenCoverPath).catch(() => {});
+    if (writtenCoverPath) {
+      try {
+        await dependencies.unlink(writtenCoverPath);
+      } catch (cleanupError) {
+        logEvent("warn", "upload.release.cleanup_failed", {
+          creatorId: actor.userId,
+          message: errorMessage(cleanupError),
+        });
+      }
+    }
 
     if ((error as { code?: string } | null)?.code === "P2002") {
       const racedRelease = await dependencies.findReleaseByCreationKey(parsed.creationKey);
@@ -247,6 +256,7 @@ import { prisma } from "@/lib/prisma";
 import { ensureUploadDir as ensureDir, publicUrl as makePublicUrl, uniqueFileName as makeUniqueFileName } from "@/lib/audio/storage";
 import { sanitizeBaseName, validateImageFile } from "@/lib/audio/validate";
 import { validateImageMagic } from "@/lib/audio/image";
+import { errorMessage, logEvent } from "@/lib/log";
 import {
   CurrentActorError,
   resolveCurrentCreator,

@@ -40,7 +40,7 @@ export default async function FeedPage() {
       ) : (
         <div className="rounded-xl border border-line bg-panel p-8 text-muted">
           <p>Your feed is empty until followed artists publish tracks.</p>
-          <Link href="/browse" className="mt-4 inline-flex rounded-lg bg-ink px-4 py-2 text-sm font-medium text-white hover:bg-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2">
+          <Link href="/browse" className="mt-4 inline-flex rounded-lg bg-ink px-4 py-2 text-sm font-medium text-canvas hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2">
             Find artists
           </Link>
         </div>

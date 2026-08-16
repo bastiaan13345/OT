@@ -135,7 +135,7 @@ export function SuggestionField({
         {
           "aria-label": `${label} suggestions`,
           className:
-            "absolute z-50 mt-2 max-h-60 w-full overflow-auto rounded-xl border border-line bg-white p-1 shadow-2xl shadow-black/10",
+            "absolute z-50 mt-2 max-h-60 w-full overflow-auto rounded-xl border border-line bg-canvas p-1 shadow-2xl shadow-black/10",
           id: listboxId,
           role: "listbox",
         },
@@ -149,7 +149,7 @@ export function SuggestionField({
                   "aria-selected": isActive,
                   className: `block w-full rounded-lg px-3 py-2 text-left text-sm transition-colors ${
                     isActive
-                      ? "bg-brand-600 text-white"
+                      ? "bg-ink text-canvas"
                       : "text-ink hover:bg-soft hover:text-ink"
                   }`,
                   id: `${listboxId}-option-${index}`,
@@ -193,7 +193,7 @@ export function SuggestionField({
       "aria-expanded": isOpen && !disabled,
       "aria-labelledby": labelId,
       className:
-        "upload-control-focus w-full rounded-lg border border-line bg-white px-4 py-2.5 text-sm text-ink placeholder:text-faint transition-colors disabled:cursor-not-allowed disabled:opacity-50",
+        "upload-control-focus w-full rounded-lg border border-line bg-canvas px-4 py-2.5 text-sm text-ink placeholder:text-faint transition-colors disabled:cursor-not-allowed disabled:opacity-50",
       disabled,
       id: inputId,
       name,

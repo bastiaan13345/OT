@@ -109,8 +109,8 @@ export function ABComparePlayer({
               aria-pressed={isActive}
               className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 ${
                 isActive
-                  ? "border-ink bg-ink text-white"
-                  : "border-line bg-white text-muted hover:border-ink hover:text-ink"
+                  ? "border-ink bg-ink text-canvas"
+                  : "border-line bg-canvas text-muted hover:border-ink hover:text-ink"
               }`}
             >
               {src.label}
@@ -123,7 +123,7 @@ export function ABComparePlayer({
         <button
           type="button"
           onClick={togglePlay}
-          className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-ink text-white transition-transform hover:scale-105 hover:bg-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2"
+          className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-ink text-canvas transition-transform hover:scale-105 hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2"
           aria-label={isPlaying ? "Pause" : "Play"}
         >
           {isPlaying ? (

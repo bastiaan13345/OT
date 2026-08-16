@@ -53,7 +53,7 @@ export default async function CreatorProfilePage() {
             name="bio"
             defaultValue={user.bio || ""}
             rows={5}
-            className="w-full resize-none rounded-lg border border-line bg-white px-4 py-2.5 text-sm text-ink placeholder:text-faint focus:border-ink focus:outline-none focus:ring-2 focus:ring-ink/15"
+            className="w-full resize-none rounded-lg border border-line bg-canvas px-4 py-2.5 text-sm text-ink placeholder:text-faint focus:border-ink focus:outline-none focus:ring-2 focus:ring-ink/15"
           />
         </div>
         <div className="grid gap-6 md:grid-cols-2">

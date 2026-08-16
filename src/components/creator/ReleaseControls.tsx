@@ -59,7 +59,7 @@ export function CreateReleaseForm() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-2 rounded-lg bg-ink px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2"
+        className="inline-flex items-center gap-2 rounded-lg bg-ink px-5 py-2.5 text-sm font-semibold text-canvas transition-colors hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2"
       >
         <Plus className="h-4 w-4" /> New release
       </button>
@@ -69,7 +69,7 @@ export function CreateReleaseForm() {
   return (
     <form
       onSubmit={submit}
-      className="rounded-xl border border-line bg-white p-6"
+      className="rounded-xl border border-line bg-canvas p-6"
     >
       <div className="mb-4 flex items-center justify-between">
         <h3 className="flex items-center gap-2 text-lg font-semibold text-ink">
@@ -99,7 +99,7 @@ export function CreateReleaseForm() {
           <select
             name="type"
             defaultValue="single"
-            className="w-full rounded-lg border border-line bg-white px-4 py-2.5 text-sm text-ink focus:border-ink focus:outline-none focus:ring-2 focus:ring-ink/15"
+            className="w-full rounded-lg border border-line bg-canvas px-4 py-2.5 text-sm text-ink focus:border-ink focus:outline-none focus:ring-2 focus:ring-ink/15"
           >
             {TYPES.map((t) => (
               <option key={t.value} value={t.value}>
@@ -122,7 +122,7 @@ export function CreateReleaseForm() {
             name="description"
             rows={3}
             placeholder="Liner notes, concept, credits…"
-            className="w-full resize-none rounded-lg border border-line bg-white px-4 py-2.5 text-sm text-ink placeholder:text-muted focus:border-ink focus:outline-none focus:ring-2 focus:ring-ink/15"
+            className="w-full resize-none rounded-lg border border-line bg-canvas px-4 py-2.5 text-sm text-ink placeholder:text-muted focus:border-ink focus:outline-none focus:ring-2 focus:ring-ink/15"
           />
         </div>
       </div>
@@ -132,7 +132,7 @@ export function CreateReleaseForm() {
           type="checkbox"
           name="published"
           value="draft"
-          className="h-4 w-4 rounded border-line bg-white accent-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2"
+          className="h-4 w-4 rounded border-line bg-canvas accent-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2"
         />
         Save as draft (unpublished)
       </label>
@@ -147,7 +147,7 @@ export function CreateReleaseForm() {
         <button
           type="submit"
           disabled={pending}
-          className="inline-flex items-center gap-2 rounded-lg bg-ink px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 disabled:opacity-50"
+          className="inline-flex items-center gap-2 rounded-lg bg-ink px-5 py-2.5 text-sm font-semibold text-canvas transition-colors hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 disabled:opacity-50"
         >
           {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
           Create release
@@ -243,7 +243,7 @@ export function AssignTrackControl({
         <select
           value={value}
           onChange={(e) => setValue(e.target.value)}
-          className="flex-1 rounded-lg border border-line bg-white px-3 py-2 text-sm text-ink focus:border-ink focus:outline-none focus:ring-2 focus:ring-ink/15"
+          className="flex-1 rounded-lg border border-line bg-canvas px-3 py-2 text-sm text-ink focus:border-ink focus:outline-none focus:ring-2 focus:ring-ink/15"
         >
           <option value="">Add a track…</option>
           {options.map((t) => (
@@ -258,7 +258,7 @@ export function AssignTrackControl({
           onClick={() =>
             run(() => assignTrackToRelease(releaseId, value), () => setValue(""))
           }
-          className="inline-flex items-center gap-1.5 rounded-lg bg-ink px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-ink px-3 py-2 text-sm font-medium text-canvas transition-colors hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 disabled:opacity-50"
         >
           {pending ? (
             <Loader2 className="h-4 w-4 animate-spin" />

@@ -57,7 +57,7 @@ export default function BrowsePage({ tracks }: BrowsePageProps) {
             <select
               value={selectedGenre || ""}
               onChange={(e) => setSelectedGenre(e.target.value || null)}
-              className="rounded-lg border border-line bg-white px-4 py-2.5 text-sm text-ink transition-colors focus:border-ink focus:outline-none focus:ring-2 focus:ring-ink/15"
+              className="rounded-lg border border-line bg-canvas px-4 py-2.5 text-sm text-ink transition-colors focus:border-ink focus:outline-none focus:ring-2 focus:ring-ink/15"
             >
               <option value="">All Genres</option>
               {genres.map((genre) => (

@@ -63,7 +63,7 @@ export default async function ReleasesPage() {
             </div>
           ) : (
             releases.map((release) => (
-              <div key={release.id} className="overflow-hidden rounded-xl border border-line bg-white">
+              <div key={release.id} className="overflow-hidden rounded-xl border border-line bg-canvas">
                 <div className="flex items-start gap-4 border-b border-line p-5">
                   <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg bg-soft">
                     {release.coverUrl ? (

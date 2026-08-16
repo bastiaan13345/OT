@@ -63,11 +63,11 @@ export default async function LibraryPage() {
           <p className="mt-2 text-muted">Your saved music, playlists, listening activity, and followed artists.</p>
         </div>
         <div className="flex flex-wrap gap-3">
-          <Link href="/feed" className="inline-flex items-center gap-2 rounded-lg border border-line bg-white px-4 py-2 text-sm font-medium text-ink hover:border-ink hover:bg-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2">
+          <Link href="/feed" className="inline-flex items-center gap-2 rounded-lg border border-line bg-canvas px-4 py-2 text-sm font-medium text-ink hover:border-ink hover:bg-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2">
             <Radio className="h-4 w-4" />
             Feed
           </Link>
-          <Link href="/history" className="inline-flex items-center gap-2 rounded-lg border border-line bg-white px-4 py-2 text-sm font-medium text-ink hover:border-ink hover:bg-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2">
+          <Link href="/history" className="inline-flex items-center gap-2 rounded-lg border border-line bg-canvas px-4 py-2 text-sm font-medium text-ink hover:border-ink hover:bg-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2">
             <Clock3 className="h-4 w-4" />
             History
           </Link>
@@ -111,7 +111,7 @@ export default async function LibraryPage() {
         {playlists.length ? (
           <div className="grid gap-4 md:grid-cols-2">
             {playlists.map((playlist) => (
-              <Link key={playlist.id} href={`/playlist/${playlist.id}`} className="rounded-xl border border-line bg-white p-5 transition-colors hover:border-ink hover:bg-panel focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2">
+              <Link key={playlist.id} href={`/playlist/${playlist.id}`} className="rounded-xl border border-line bg-canvas p-5 transition-colors hover:border-ink hover:bg-panel focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2">
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <h3 className="font-semibold text-ink">{playlist.name}</h3>
@@ -143,7 +143,7 @@ export default async function LibraryPage() {
             <Link href="/history" className="rounded-sm text-sm font-medium text-ink underline decoration-line underline-offset-4 hover:decoration-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink">View all</Link>
           </div>
           {recentTracks.length ? (
-            <div className="space-y-3 rounded-xl border border-line bg-white p-4">
+            <div className="space-y-3 rounded-xl border border-line bg-canvas p-4">
               {recentTracks.map((track) => (
                 <Link key={track.id} href={`/track/${track.id}`} className="block rounded-lg px-3 py-2 hover:bg-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink">
                   <p className="truncate font-medium text-ink">{track.title}</p>
@@ -165,7 +165,7 @@ export default async function LibraryPage() {
             <Link href="/feed" className="rounded-sm text-sm font-medium text-ink underline decoration-line underline-offset-4 hover:decoration-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink">Open feed</Link>
           </div>
           {followedArtists.length ? (
-            <div className="space-y-3 rounded-xl border border-line bg-white p-4">
+            <div className="space-y-3 rounded-xl border border-line bg-canvas p-4">
               {followedArtists.map(({ following }) => (
                 <Link key={following.id} href={`/artist/${following.id}`} className="block rounded-lg px-3 py-2 hover:bg-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink">
                   <p className="font-medium text-ink">{following.name}</p>

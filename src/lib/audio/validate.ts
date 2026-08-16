@@ -26,8 +26,8 @@ export const IMAGE_EXTENSIONS = [
   ".avif",
 ] as const;
 
-// Keep this aligned with the Next.js server-action request limit.
-export const MAX_AUDIO_BYTES = 50 * 1024 * 1024;
+// Keep audio + cover + multipart overhead within the 320 MB Next.js request limits.
+export const MAX_AUDIO_BYTES = 300 * 1024 * 1024;
 export const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 
 const AUDIO_MIME_PREFIXES = ["audio/", "application/ogg"];

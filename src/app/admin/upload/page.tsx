@@ -2,7 +2,7 @@ import { UploadStudio } from "@/components/upload/UploadStudio";
 import { getUploadStudioData } from "@/lib/upload/data";
 
 export const metadata = {
-  title: "Upload — OpenTunes",
+  title: "Upload - Infini",
 };
 
 export default async function AdminUploadPage() {

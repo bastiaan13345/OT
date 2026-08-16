@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import HomePage from "@/components/HomePage";
 
-export const revalidate = 60; // Revalidate every 60 seconds
+export const dynamic = "force-dynamic";
 
 export default async function Page() {
   const [featuredTracks, recentTracks, totalTracks, totalPlays, activeArtists] =

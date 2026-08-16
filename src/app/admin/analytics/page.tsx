@@ -70,7 +70,7 @@ export default async function AnalyticsPage() {
 
       <div className="grid gap-6 lg:grid-cols-5">
         {/* Trend */}
-        <div className="rounded-xl border border-line bg-white p-6 lg:col-span-3">
+        <div className="rounded-xl border border-line bg-canvas p-6 lg:col-span-3">
           <div className="mb-4 flex items-center gap-2">
             <TrendingUp className="h-4 w-4 text-muted" />
             <h2 className="text-lg font-semibold text-ink">Last 14 days</h2>
@@ -103,7 +103,7 @@ export default async function AnalyticsPage() {
         </div>
 
         {/* Top tracks */}
-        <div className="rounded-xl border border-line bg-white p-6 lg:col-span-2">
+        <div className="rounded-xl border border-line bg-canvas p-6 lg:col-span-2">
           <h2 className="mb-4 text-lg font-semibold text-ink">Top tracks</h2>
           {a.topTracks.length === 0 ? (
             <div className="flex h-48 flex-col items-center justify-center text-center">
@@ -124,7 +124,7 @@ export default async function AnalyticsPage() {
                       </div>
                     )}
                   </div>
-                  <Link href={`/admin/studio/${t.id}`} className="min-w-0 flex-1 truncate rounded-sm text-sm font-medium text-ink transition-colors hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink">
+                  <Link href={`/admin/studio/${t.id}`} className="min-w-0 flex-1 truncate rounded-sm text-sm font-medium text-ink transition-colors hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink">
                     {t.title}
                   </Link>
                   <span className="flex items-center gap-1 text-xs text-muted">

@@ -5,6 +5,7 @@ import { shouldDeleteSharedCover } from "./cover";
 describe("shouldDeleteSharedCover", () => {
   it("deletes an unshared public cover after its release is gone", () => {
     expect(shouldDeleteSharedCover("/uploads/covers/release.jpg", 0, 0)).toBe(true);
+    expect(shouldDeleteSharedCover("/api/media/covers/release.jpg", 0, 0)).toBe(true);
   });
 
   it("keeps cover artwork still referenced by another release or track", () => {

@@ -4,12 +4,17 @@ import { mkdir } from "fs/promises";
 
 /** Absolute path to the public/ directory served statically by Next. */
 export const PUBLIC_DIR = join(process.cwd(), "public");
-/** Absolute path to private local audio storage, not served by Next static files. */
-export const STORAGE_DIR = join(process.cwd(), "storage");
+
+/** Root for all mutable media. Production must mount this on persistent storage. */
+export function mediaRoot(): string {
+  return resolve(
+    /* turbopackIgnore: true */ process.env.MEDIA_ROOT || join(process.cwd(), "storage")
+  );
+}
 
 export const UPLOAD_SUBDIRS = {
   audio: "audio",
-  covers: "uploads/covers",
+  covers: "covers",
   enhanced: "enhanced",
 } as const;
 
@@ -17,8 +22,7 @@ export type UploadKind = keyof typeof UPLOAD_SUBDIRS;
 
 /** Absolute directory for an upload kind, created if missing. */
 export async function ensureUploadDir(kind: UploadKind): Promise<string> {
-  const root = kind === "covers" ? PUBLIC_DIR : STORAGE_DIR;
-  const dir = join(root, UPLOAD_SUBDIRS[kind]);
+  const dir = join(/* turbopackIgnore: true */ mediaRoot(), UPLOAD_SUBDIRS[kind]);
   await mkdir(dir, { recursive: true });
   return dir;
 }
@@ -37,10 +41,12 @@ function privateLocator(kind: "audio" | "enhanced", fileName: string): string {
 
 /**
  * Stored locator for a file within an upload kind.
- * Covers remain public URLs; audio/enhanced files are private local locators.
+ * Covers use a validated public route; audio/enhanced files use private locators.
  */
 export function publicUrl(kind: UploadKind, fileName: string): string {
-  if (kind === "covers") return `/${UPLOAD_SUBDIRS[kind]}/${assertSafeFileName(fileName)}`;
+  if (kind === "covers") {
+    return `/api/media/covers/${encodeURIComponent(assertSafeFileName(fileName))}`;
+  }
   return privateLocator(kind, fileName);
 }
 
@@ -62,22 +68,60 @@ export function resolvePublicPath(url: string): string | null {
   const localMatch = /^local:(audio|enhanced)\/([^/]+)$/.exec(url);
   if (localMatch) {
     const [, kind, fileName] = localMatch;
-    return resolveInside(join(STORAGE_DIR, UPLOAD_SUBDIRS[kind as "audio" | "enhanced"]), fileName);
+    return resolveInside(
+      join(
+        /* turbopackIgnore: true */ mediaRoot(),
+        UPLOAD_SUBDIRS[kind as "audio" | "enhanced"]
+      ),
+      fileName
+    );
   }
 
   if (!url.startsWith("/")) return null;
 
+  const coverMatch = /^\/api\/media\/covers\/([^/]+)$/.exec(url);
+  if (coverMatch) {
+    try {
+      const fileName = decodeURIComponent(coverMatch[1]);
+      if (basename(fileName) !== fileName) return null;
+      return resolveInside(
+        join(/* turbopackIgnore: true */ mediaRoot(), UPLOAD_SUBDIRS.covers),
+        fileName
+      );
+    } catch {
+      return null;
+    }
+  }
+
   if (url.startsWith("/uploads/audio/")) {
     const relativePath = url.replace(/^\/uploads\/audio\/+/, "");
-    const privatePath = resolveInside(join(STORAGE_DIR, UPLOAD_SUBDIRS.audio), relativePath);
-    if (privatePath && existsSync(privatePath)) return privatePath;
+    const privatePath = resolveInside(
+      join(/* turbopackIgnore: true */ mediaRoot(), UPLOAD_SUBDIRS.audio),
+      relativePath
+    );
+    if (privatePath && existsSync(/* turbopackIgnore: true */ privatePath)) return privatePath;
     return resolveInside(PUBLIC_DIR, url.replace(/^\/+/, ""));
   }
 
   if (url.startsWith("/uploads/enhanced/")) {
     const relativePath = url.replace(/^\/uploads\/enhanced\/+/, "");
-    const privatePath = resolveInside(join(STORAGE_DIR, UPLOAD_SUBDIRS.enhanced), relativePath);
-    if (privatePath && existsSync(privatePath)) return privatePath;
+    const privatePath = resolveInside(
+      join(/* turbopackIgnore: true */ mediaRoot(), UPLOAD_SUBDIRS.enhanced),
+      relativePath
+    );
+    if (privatePath && existsSync(/* turbopackIgnore: true */ privatePath)) return privatePath;
+    return resolveInside(PUBLIC_DIR, url.replace(/^\/+/, ""));
+  }
+
+  if (url.startsWith("/uploads/covers/")) {
+    const relativePath = url.replace(/^\/uploads\/covers\/+/, "");
+    const persistentPath = resolveInside(
+      join(/* turbopackIgnore: true */ mediaRoot(), UPLOAD_SUBDIRS.covers),
+      relativePath
+    );
+    if (persistentPath && existsSync(/* turbopackIgnore: true */ persistentPath)) {
+      return persistentPath;
+    }
     return resolveInside(PUBLIC_DIR, url.replace(/^\/+/, ""));
   }
 

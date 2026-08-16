@@ -10,6 +10,11 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model HealthProbe {
+  id        String   @id
+  checkedAt DateTime
+}
+
 model Track {
   id             String          @id @default(cuid())
   creationKey    String?         @unique
@@ -45,10 +50,11 @@ model Track {
 }
 
 model Admin {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  password  String
-  createdAt DateTime @default(now())
+  id             String   @id @default(cuid())
+  email          String   @unique
+  password       String
+  sessionVersion Int      @default(0)
+  createdAt      DateTime @default(now())
 }
 
 model User {
@@ -57,11 +63,13 @@ model User {
   email             String          @unique
   password          String
   role              String          @default("LISTENER")
+  approved          Boolean         @default(true)
   bio               String?
   location          String?
   website           String?
   avatarUrl         String?
   uploadConcurrency Int             @default(2)
+  sessionVersion    Int             @default(0)
   tracks            Track[]
   likes             Like[]
   comments          Comment[]

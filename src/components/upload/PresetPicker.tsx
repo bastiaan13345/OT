@@ -170,7 +170,7 @@ export function PresetPicker({ current, presets, onApply, disabled = false }: Pr
           {
             "aria-labelledby": `${dialogId}-title`,
             className:
-              "mt-2 w-full rounded-2xl border border-line bg-white p-4 text-ink shadow-2xl shadow-black/10",
+              "mt-2 w-full rounded-2xl border border-line bg-canvas p-4 text-ink shadow-2xl shadow-black/10",
             id: dialogId,
             onKeyDown: onDialogKeyDown,
             ref: dialogRef,
@@ -215,7 +215,7 @@ export function PresetPicker({ current, presets, onApply, disabled = false }: Pr
             {
               "aria-labelledby": `${dialogId}-title`,
               className:
-                "mt-2 w-full rounded-2xl border border-line bg-white p-4 text-ink shadow-2xl shadow-black/10",
+                "mt-2 w-full rounded-2xl border border-line bg-canvas p-4 text-ink shadow-2xl shadow-black/10",
               id: dialogId,
               onKeyDown: onDialogKeyDown,
               ref: dialogRef,
@@ -266,7 +266,7 @@ export function PresetPicker({ current, presets, onApply, disabled = false }: Pr
                 "button",
                 {
                   className:
-                    "upload-control-focus rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-brand-500",
+                    "upload-control-focus rounded-lg bg-ink px-3 py-2 text-sm font-medium text-canvas transition hover:opacity-80",
                   onClick: () => apply(pendingPreset),
                   type: "button",
                 },
@@ -287,7 +287,7 @@ export function PresetPicker({ current, presets, onApply, disabled = false }: Pr
         "aria-expanded": isOpen,
         "aria-haspopup": "dialog",
         className:
-          "upload-control-focus rounded-lg border border-line bg-white px-3 py-2 text-sm font-medium text-ink transition hover:bg-soft disabled:cursor-not-allowed disabled:opacity-50",
+          "upload-control-focus rounded-lg border border-line bg-canvas px-3 py-2 text-sm font-medium text-ink transition hover:bg-soft disabled:cursor-not-allowed disabled:opacity-50",
         disabled,
         onClick: () => {
           if (!disabled) {

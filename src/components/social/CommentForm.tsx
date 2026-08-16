@@ -27,7 +27,7 @@ export function CommentForm({ trackId, timestampSeconds }: CommentFormProps) {
         name="body"
         rows={3}
         placeholder="Join the conversation..."
-        className="w-full resize-none rounded-lg border border-line bg-white px-4 py-3 text-sm text-ink placeholder:text-faint focus:border-ink focus:outline-none focus:ring-2 focus:ring-ink/15"
+        className="w-full resize-none rounded-lg border border-line bg-canvas px-4 py-3 text-sm text-ink placeholder:text-faint focus:border-ink focus:outline-none focus:ring-2 focus:ring-ink/15"
         required
       />
       <Button type="submit" size="sm" className="self-start">

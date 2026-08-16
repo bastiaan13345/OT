@@ -64,7 +64,7 @@ describe("DatePicker", () => {
     const grid = screen.getByRole("grid", { name: "July 2026" });
 
     expect(dialog).toHaveClass(
-      "bg-white",
+      "bg-canvas",
     );
     expect(trigger).toHaveAttribute("aria-controls", dialog.id);
     expect(dialog).toHaveAttribute("aria-labelledby", `${dialog.id}-label`);
